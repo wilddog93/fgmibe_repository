@@ -318,6 +318,14 @@ After the access token expires, a new access token can be generated, by making a
 
 A refresh token is valid for 30 days. You can modify this expiration time by changing the `JWT_REFRESH_EXPIRATION_DAYS` environment variable in the .env file.
 
+**Google Login**:
+To use Google login, you need to create a Google OAuth client ID and client secret. You can
+do this by following these steps:  [Google OAuth Client ID](https://developers.google.com/identity/oauth2/web/guides/get-google-api-clientid)
+
+**Github Login**:
+To use Github login, you need to create a Github OAuth client ID and client secret. You can
+do this by following these steps:  [Github OAuth Client ID](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps)
+
 ## Authorization
 
 The `auth` middleware can also be used to require certain rights/permissions to access a route.
@@ -381,6 +389,7 @@ Contributions are more than welcome! Please check out the [contributing guide](C
 
 ## Inspirations
 
+- [RESTful API Prisma Express Boilerplate](https://github.com/antonio-lazaro/prisma-express-typescript-boilerplate)
 - [RESTful API Node Server Boilerplate](https://github.com/hagopj13/node-express-boilerplate)
 
 ## License
