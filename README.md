@@ -212,16 +212,16 @@ List of available routes:
 `POST /v1/auth/forgot-password` - send reset password email\
 `POST /v1/auth/reset-password` - reset password\
 `POST /v1/auth/send-verification-email` - send verification email\
-`POST /v1/auth/verify-email` - verify email
-`GET /v1/auth/google` - initiate google login
-`GET /v1/auth/github` - initiate google login
+`POST /v1/auth/verify-email` - verify email\
+`GET /v1/auth/google` - initiate google login\
+`GET /v1/auth/github` - initiate github login
 
 **Post routes**:\
 `POST /v1/posts` - create a post\
 `GET /v1/posts/{id}` - get a post\
 `GET /v1/posts` - get all posts\
 `PATCH /v1/posts/{id}` - update a post\
-`DELETE /v1/posts/{id}` - delete a post\
+`DELETE /v1/posts/{id}` - delete a post
 
 **User routes**:\
 `POST /v1/users` - create a user\
