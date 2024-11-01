@@ -9,8 +9,8 @@ This project is an adaptation of the project [RESTful API Node Server Boilerplat
 Clone the repo:
 
 ```bash
-git clone --depth 1 https://github.com/antonio-lazaro/prisma-express-typescript-boilerplate.git
-cd prisma-express-typescript-boilerplate
+git clone --depth 1 https://github.com/wilddog93/prisma-express-boilerplate-authentication.git
+cd prisma-express-boilerplate-authentication
 npx rimraf ./.git
 ```
 
@@ -150,7 +150,7 @@ The environment variables can be found and modified in the `.env` file. They com
 
 ```bash
 # Port number
-PORT=3000
+PORT=4000
 
 # URL of the PostgreSQL database
 DATABASE_URL=postgresql://postgres:secret@localhost:5432/mydb?schema=public
@@ -170,6 +170,14 @@ SMTP_PORT=587
 SMTP_USERNAME=email-server-username
 SMTP_PASSWORD=email-server-password
 EMAIL_FROM=support@yourapp.com
+
+# Google OAuth
+GOOGLE_CLIENT_ID="google-client-id"
+GOOGLE_CLIENT_SECRET="google-client-secret"
+
+# Github OAuth
+GITHUB_CLIENT_ID="github-client-id"
+GITHUB_CLIENT_SECRET="github-client-secret"
 ```
 
 ## Project Structure
@@ -197,6 +205,7 @@ To view the list of available APIs and their specifications, run the server and 
 List of available routes:
 
 **Auth routes**:\
+`GET /v1/auth/me` - user info\
 `POST /v1/auth/register` - register\
 `POST /v1/auth/login` - login\
 `POST /v1/auth/refresh-tokens` - refresh auth tokens\
@@ -204,6 +213,15 @@ List of available routes:
 `POST /v1/auth/reset-password` - reset password\
 `POST /v1/auth/send-verification-email` - send verification email\
 `POST /v1/auth/verify-email` - verify email
+`GET /v1/auth/google` - initiate google login
+`GET /v1/auth/github` - initiate google login
+
+**Post routes**:\
+`POST /v1/posts` - create a post\
+`GET /v1/posts/{id}` - get a post\
+`GET /v1/posts` - get all posts\
+`PATCH /v1/posts/{id}` - update a post\
+`DELETE /v1/posts/{id}` - delete a post\
 
 **User routes**:\
 `POST /v1/users` - create a user\
