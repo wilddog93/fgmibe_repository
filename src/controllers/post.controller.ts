@@ -12,8 +12,9 @@ const createPost = catchAsync(async (req, res) => {
 });
 
 const getPosts = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['title', 'content', 'authorId', 'viewCount', 'published']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const query = req.query;
+  const filter = pick(query, ['title', 'content', 'authorId', 'viewCount', 'published']);
+  const options = pick(query, ['sortBy', 'limit', 'page', 'sortType']);
   const result = await postService.queryPosts(filter, options);
   res.send(result);
 });

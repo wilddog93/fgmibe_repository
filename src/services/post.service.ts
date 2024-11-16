@@ -57,15 +57,15 @@ const queryPosts = async <Key extends keyof Post>(
     'id',
     'title',
     'content',
-    'authorId',
+    'author',
     'viewCount',
     'published',
     'createdAt',
     'updatedAt'
   ] as Key[]
 ): Promise<Pick<Post, Key>[]> => {
-  const page = options.page ?? 1;
-  const limit = options.limit ?? 100;
+  const page = Number(options.page ?? 1);
+  const limit = Number(options.limit ?? 100);
   const sortBy = options.sortBy;
   const sortType = options.sortType ?? 'desc';
   const posts = await prisma.post.findMany({

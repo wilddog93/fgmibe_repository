@@ -8,8 +8,8 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(auth('managePosts'), validate(postValidation.createPost), postController.createPost)
-  .get(auth('getPosts'), postController.getPosts);
+  .post(auth('managePosts'), validate(postValidation.createPost), postController.createPost);
+router.route('/').get(auth('getPosts'), postController.getPosts);
 
 router.route('/:postId').get(auth('getPosts'), postController.getPost);
 // .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
