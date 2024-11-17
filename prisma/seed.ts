@@ -16,6 +16,56 @@ const userData: Prisma.UserCreateInput[] = [
           title: 'Join the Prisma Discord',
           content: 'https://pris.ly/discord',
           published: true
+        },
+        {
+          title: 'Follow Prisma on Twitter',
+          content: 'https://pris.ly/twitter',
+          published: true
+        },
+        {
+          title: 'Visit the Prisma GitHub repo',
+          content: 'https://github.com/prisma/prisma',
+          published: true
+        },
+        {
+          title: 'Watch Prisma on YouTube',
+          content: 'https://pris.ly/youtube',
+          published: true
+        },
+        {
+          title: 'Join the Prisma Slack community',
+          content: 'https://prisma.slack.com',
+          published: true
+        },
+        {
+          title: 'Follow Prisma on LinkedIn',
+          content: 'https://www.linkedin.com/company/prisma',
+          published: true
+        },
+        {
+          title: 'Check out the Prisma blog',
+          content: 'https://pris.ly/blog',
+          published: true
+        },
+        {
+          title: 'Subscribe to the Prisma newsletter',
+          content: 'https://pris.ly/email',
+          published: true
+        },
+        {
+          title: 'Follow Prisma on Twitter',
+          content: 'https://twitter.com/prisma',
+          published: true
+        },
+        {
+          title: 'Join the Prisma Discord community',
+          content: 'https://discord.prisma.io',
+          published: true
+        },
+        {
+          title: 'Follow Prisma on GitHub',
+          content: 'https://github.com/prisma',
+          published: true
         }
       ]
     }

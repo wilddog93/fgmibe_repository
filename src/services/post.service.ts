@@ -45,8 +45,29 @@ const createPost = async (post: Post, authorId: number): Promise<Post> => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>}
  */
+
+export interface PostTypeFilter {
+  id?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  title?: string;
+  content?: string | null;
+  published?: boolean;
+  viewCount?: number;
+  authorId?: number | null;
+  author?: User;
+}
+
+type QueryResult = {
+  data: any[];
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+};
+
 const queryPosts = async <Key extends keyof Post>(
-  filter: object,
+  filter: PostTypeFilter,
   options: {
     limit?: number;
     page?: number;
@@ -57,25 +78,86 @@ const queryPosts = async <Key extends keyof Post>(
     'id',
     'title',
     'content',
+    'authorId',
     'author',
     'viewCount',
     'published',
     'createdAt',
     'updatedAt'
   ] as Key[]
-): Promise<Pick<Post, Key>[]> => {
-  const page = Number(options.page ?? 1);
+): Promise<QueryResult> => {
+  const page = Number(options.page ?? 0);
   const limit = Number(options.limit ?? 100);
-  const sortBy = options.sortBy;
+  const sortBy = options.sortBy ?? 'createdAt';
   const sortType = options.sortType ?? 'desc';
+  const selected = keys.reduce((obj, k) => {
+    return {
+      ...obj,
+      [k]: true,
+      author: {
+        select: {
+          name: true,
+          email: true
+        }
+      }
+    };
+  }, {});
+  const query: Prisma.PostWhereInput = {
+    title: {
+      contains: filter?.title?.toLowerCase(),
+      mode: 'insensitive'
+    },
+    content: {
+      contains: filter?.content?.toLowerCase(),
+      mode: 'insensitive'
+    },
+    authorId: {
+      equals: filter?.authorId
+    },
+    author: {
+      OR: [
+        {
+          name: {
+            contains: filter?.author?.name?.toLowerCase(),
+            mode: 'insensitive'
+          }
+        },
+        {
+          email: {
+            contains: filter?.author?.email?.toLowerCase(),
+            mode: 'insensitive'
+          }
+        }
+      ]
+    },
+    viewCount: {
+      gte: filter?.viewCount
+    },
+    published: {
+      equals: filter?.published ?? true
+    }
+  };
+  const totalItems = await prisma.post.count({
+    where: query
+  });
   const posts = await prisma.post.findMany({
-    where: filter,
-    select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
-    skip: page * limit,
+    where: query,
+    select: selected,
+    skip: (page - 1) * limit,
     take: limit,
     orderBy: sortBy ? { [sortBy]: sortType } : undefined
   });
-  return posts as Pick<Post, Key>[];
+
+  const result = {
+    data: posts as Pick<Post, Key>[],
+    page,
+    limit,
+    totalItems,
+    totalPages: Math.ceil(Number(totalItems) / Number(limit))
+  };
+
+  console.log({ filter, selected }, 'selected');
+  return result;
 };
 
 /**
