@@ -60,10 +60,12 @@ export interface PostTypeFilter {
 
 type QueryResult = {
   data: any[];
-  page: number;
-  limit: number;
-  totalItems: number;
-  totalPages: number;
+  pagination: {
+    page: number;
+    limit: number;
+    totalItems: number;
+    totalPages: number;
+  };
 };
 
 const queryPosts = async <Key extends keyof Post>(
@@ -115,7 +117,7 @@ const queryPosts = async <Key extends keyof Post>(
       equals: filter?.authorId
     },
     author: {
-      OR: [
+      AND: [
         {
           name: {
             contains: filter?.author?.name?.toLowerCase(),
@@ -150,10 +152,12 @@ const queryPosts = async <Key extends keyof Post>(
 
   const result = {
     data: posts as Pick<Post, Key>[],
-    page,
-    limit,
-    totalItems,
-    totalPages: Math.ceil(Number(totalItems) / Number(limit))
+    pagination: {
+      page,
+      limit,
+      totalItems,
+      totalPages: Math.ceil(Number(totalItems) / Number(limit))
+    }
   };
 
   console.log({ filter, selected }, 'selected');
