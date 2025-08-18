@@ -1,65 +1,150 @@
-// create seed user
-import { PrismaClient, Prisma } from '@prisma/client';
+// prisma/seed.ts
+
+import {
+  PrismaClient,
+  Segment,
+  MembershipPackage,
+  RegistrationSource,
+  PaymentMethod,
+  PaymentStatus,
+  PaymentGateway,
+  ProgramCategory
+} from '@prisma/client';
+
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-const userData: Prisma.UserCreateInput[] = [
-  {
-    name: 'Jumakri Ridho Fauzi',
-    email: 'ridhoajibx@gmail.com',
-    password: '', // myPassword42
-    role: 'ADMIN',
-    isEmailVerified: true
-  },
-  {
-    name: 'john doe',
-    email: 'johndoe@gmail.com',
-    password: '', // myPassword42
-    role: 'MEMBER',
-    isEmailVerified: true,
-    member: {
-      create: {
-        name: 'john doe',
-        email: 'johndoe@gmail.com',
-        phone: '081234567890',
-        segment: 'PROFESSIONAL',
-        institution: 'University of Indonesia',
-        interestAreas: ['Geology', 'Others'],
-        membershipPackage: 'ADVANCED'
+async function main() {
+  console.log('🌱 Start seeding...');
+
+  // 1. Create Program
+  const program = await prisma.program.upsert({
+    where: { id: 'program-1' },
+    update: {},
+    create: {
+      id: 'program-1',
+      name: 'AI & Data Workshop',
+      description: 'Learn AI fundamentals with hands-on practice.',
+      startDate: new Date('2025-09-01'),
+      endDate: new Date('2025-09-03'),
+      category: ProgramCategory.BOOTCAMP
+    }
+  });
+
+  // 2. Create Member (with User link)
+  const user = await prisma.user.upsert({
+    where: { email: 'ridhoajibx@gmail.com' },
+    update: {},
+    create: {
+      email: 'ridhoajibx@gmail.com',
+      name: 'Ridho Fauzi',
+      password: await bcrypt.hash('Password123!', 10),
+      role: 'ADMIN'
+    }
+  });
+
+  const member = await prisma.member.upsert({
+    where: { email: 'member@example.com' },
+    update: {},
+    create: {
+      email: 'member@example.com',
+      name: 'Ridho Fauzi',
+      phone: '08123456789',
+      institution: 'Nusantics',
+      segment: Segment.PROFESSIONAL,
+      membershipPackage: MembershipPackage.ADVANCED,
+      interestAreas: ['Geology', 'Others'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      user: { connect: { id: user.id } }
+    }
+  });
+
+  // Member registers for program
+  const memberRegistration = await prisma.programRegistration.create({
+    data: {
+      programId: program.id,
+      memberId: member.id,
+      userId: user.id,
+      email: member.email,
+      name: member.name,
+      phone: member.phone,
+      institution: member.institution,
+      segment: member.segment,
+      programPackage: 'VIP',
+      source: RegistrationSource.MEMBER,
+      payments: {
+        create: {
+          amount: 2000000,
+          method: PaymentMethod.BANK_TRANSFER,
+          status: PaymentStatus.COMPLETED,
+          paidAt: new Date(),
+          referenceType: 'PROGRAM',
+          orderId: '12345678901',
+          email: member.email
+        }
       }
     }
-  },
-  {
-    name: 'jane doe',
-    email: 'janedoe@gmail.com',
-    password: '', // myPassword42
-    role: 'USER',
-    isEmailVerified: true
-  }
-];
+  });
 
-async function main() {
-  const hashedPassword = await bcrypt.hash('Password123!', 10);
-  console.log(`Start seeding ...`);
-  for (const u of userData) {
-    const user = await prisma.user.create({
-      data: {
-        ...u,
-        password: hashedPassword
+  // 3. Non-member registers directly
+  const nonMemberRegistration = await prisma.programRegistration.create({
+    data: {
+      programId: program.id,
+      email: 'anon@example.com',
+      name: 'Anon User',
+      phone: '08987654321',
+      institution: 'Community',
+      segment: Segment.STUDENT,
+      programPackage: 'STANDARD',
+      source: RegistrationSource.NON_MEMBER,
+      payments: {
+        create: {
+          amount: 1000000,
+          method: PaymentMethod.EWALLET,
+          status: PaymentStatus.PENDING,
+          gateway: PaymentGateway.MIDTRANS,
+          referenceType: 'PROGRAM',
+          orderId: '1234567890',
+          email: 'anon@example.com'
+        }
       }
-    });
-    console.log(`Created user with id: ${user.id}`);
-  }
-  console.log(`Seeding finished.`);
+    }
+  });
+
+  // 4. Admin registers someone manually
+  const adminRegistration = await prisma.programRegistration.create({
+    data: {
+      programId: program.id,
+      email: 'manual@example.com',
+      name: 'Manual Entry',
+      institution: 'University A',
+      segment: Segment.PROFESSIONAL,
+      programPackage: 'STANDARD',
+      source: RegistrationSource.ADMIN,
+      payments: {
+        create: {
+          amount: 1500000,
+          method: PaymentMethod.BANK_TRANSFER,
+          status: PaymentStatus.FAILED,
+          referenceType: 'PROGRAM',
+          orderId: '1234567890FF',
+          email: 'manual@example.com'
+        }
+      }
+    }
+  });
+
+  console.log('✅ Seeding finished.');
+  console.log({ memberRegistration, nonMemberRegistration, adminRegistration });
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
+  .catch((e) => {
     console.error(e);
-    await prisma.$disconnect();
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
