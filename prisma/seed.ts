@@ -1,5 +1,6 @@
 // create seed user
 import { PrismaClient, Prisma } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -7,76 +8,46 @@ const userData: Prisma.UserCreateInput[] = [
   {
     name: 'Jumakri Ridho Fauzi',
     email: 'ridhoajibx@gmail.com',
-    password: '$2a$10$TLtC603wy85MM./ot/pvEec0w2au6sjPaOmLpLQFbxPdpJH9fDwwS', // myPassword42
+    password: '', // myPassword42
     role: 'ADMIN',
+    isEmailVerified: true
+  },
+  {
+    name: 'john doe',
+    email: 'johndoe@gmail.com',
+    password: '', // myPassword42
+    role: 'MEMBER',
     isEmailVerified: true,
-    posts: {
-      create: [
-        {
-          title: 'Join the Prisma Discord',
-          content: 'https://pris.ly/discord',
-          published: true
-        },
-        {
-          title: 'Follow Prisma on Twitter',
-          content: 'https://pris.ly/twitter',
-          published: true
-        },
-        {
-          title: 'Visit the Prisma GitHub repo',
-          content: 'https://github.com/prisma/prisma',
-          published: true
-        },
-        {
-          title: 'Watch Prisma on YouTube',
-          content: 'https://pris.ly/youtube',
-          published: true
-        },
-        {
-          title: 'Join the Prisma Slack community',
-          content: 'https://prisma.slack.com',
-          published: true
-        },
-        {
-          title: 'Follow Prisma on LinkedIn',
-          content: 'https://www.linkedin.com/company/prisma',
-          published: true
-        },
-        {
-          title: 'Check out the Prisma blog',
-          content: 'https://pris.ly/blog',
-          published: true
-        },
-        {
-          title: 'Subscribe to the Prisma newsletter',
-          content: 'https://pris.ly/email',
-          published: true
-        },
-        {
-          title: 'Follow Prisma on Twitter',
-          content: 'https://twitter.com/prisma',
-          published: true
-        },
-        {
-          title: 'Join the Prisma Discord community',
-          content: 'https://discord.prisma.io',
-          published: true
-        },
-        {
-          title: 'Follow Prisma on GitHub',
-          content: 'https://github.com/prisma',
-          published: true
-        }
-      ]
+    member: {
+      create: {
+        name: 'john doe',
+        email: 'johndoe@gmail.com',
+        phone: '081234567890',
+        segment: 'PROFESSIONAL',
+        institution: 'University of Indonesia',
+        interestAreas: ['Geology', 'Others'],
+        membershipPackage: 'ADVANCED'
+      }
     }
+  },
+  {
+    name: 'jane doe',
+    email: 'janedoe@gmail.com',
+    password: '', // myPassword42
+    role: 'USER',
+    isEmailVerified: true
   }
 ];
 
 async function main() {
+  const hashedPassword = await bcrypt.hash('Password123!', 10);
   console.log(`Start seeding ...`);
   for (const u of userData) {
     const user = await prisma.user.create({
-      data: u
+      data: {
+        ...u,
+        password: hashedPassword
+      }
     });
     console.log(`Created user with id: ${user.id}`);
   }
