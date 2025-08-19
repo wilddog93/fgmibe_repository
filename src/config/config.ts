@@ -68,5 +68,14 @@ export default {
   github: {
     cliendID: envVars.GITHUB_CLIENT_ID,
     clientSecret: envVars.GITHUB_CLIENT_SECRET
+  },
+  redis: {
+    host: envVars.REDIS_HOST,
+    port: envVars.REDIS_PORT
+  },
+  midtrans: {
+    baseUrl: envVars.MIDTRANS_BASE_URL,
+    serverKey: envVars.MIDTRANS_SERVER_KEY,
+    clientKey: envVars.MIDTRANS_CLIENT_KEY
   }
 };

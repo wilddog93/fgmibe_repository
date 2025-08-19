@@ -3,14 +3,34 @@ import app from './app';
 import prisma from './client';
 import config from './config/config';
 import logger from './config/logger';
+import { initRedis } from './config/redis';
+
+// let server: Server;
+// prisma.$connect().then(() => {
+//   logger.info('Connected to SQL Database');
+//   server = app.listen(config.port, () => {
+//     logger.info(`Listening to port ${config.port}`);
+//   });
+// });
 
 let server: Server;
-prisma.$connect().then(() => {
-  logger.info('Connected to SQL Database');
-  server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`);
-  });
-});
+
+async function startServer() {
+  try {
+    await prisma.$connect();
+    logger.info('✅ Connected to SQL Database');
+
+    await initRedis(); // 🔑 connect redis sebelum listen
+    logger.info('✅ Connected to Redis');
+
+    server = app.listen(config.port, () => {
+      logger.info(`🚀 Listening to port ${config.port}`);
+    });
+  } catch (err) {
+    logger.error('❌ Failed to start server', err);
+    process.exit(1);
+  }
+}
 
 const exitHandler = () => {
   if (server) {

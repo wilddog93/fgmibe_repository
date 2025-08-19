@@ -2,7 +2,7 @@ import express from 'express';
 import authRoute from './auth.route';
 import userRoute from './user.route';
 import docsRoute from './docs.route';
-import postRoute from './post.route';
+import paymentRoute from './payment.route';
 import config from '../../config/config';
 
 const router = express.Router();
@@ -17,8 +17,8 @@ const defaultRoutes = [
     route: userRoute
   },
   {
-    path: '/posts',
-    route: postRoute
+    path: '/payment',
+    route: paymentRoute
   }
 ];
 
