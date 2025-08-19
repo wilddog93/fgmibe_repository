@@ -30,6 +30,10 @@ export async function createTransactionQris(params: {
       email: params.customerEmail,
       first_name: params.customerName
     }
+    // gopay: {
+    //   enable_callback: true, // optional
+    //   callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success`
+    // }
   };
 
   const res = await fetch(`${BASE_URL}/v2/charge`, {

@@ -3,7 +3,6 @@
 import {
   PrismaClient,
   Segment,
-  MembershipPackage,
   RegistrationSource,
   PaymentMethod,
   PaymentStatus,
@@ -25,6 +24,8 @@ async function main() {
     create: {
       id: 'program-1',
       name: 'AI & Data Workshop',
+      priceMember: 2000000,
+      priceNonMember: 1000000,
       description: 'Learn AI fundamentals with hands-on practice.',
       startDate: new Date('2025-09-01'),
       endDate: new Date('2025-09-03'),
@@ -32,7 +33,19 @@ async function main() {
     }
   });
 
-  // 2. Create Member (with User link)
+  // 2. Create Membership Package
+  const membershipPackage = await prisma.membershipPackage.upsert({
+    where: { id: 'member-basic' },
+    update: {},
+    create: {
+      id: 'member-basic',
+      name: 'Basic',
+      description: 'Basic',
+      price: 1000000
+    }
+  });
+
+  // 3. Create Member (with User link)
   const user = await prisma.user.upsert({
     where: { email: 'ridhoajibx@gmail.com' },
     update: {},
@@ -44,6 +57,7 @@ async function main() {
     }
   });
 
+  // Create Member
   const member = await prisma.member.upsert({
     where: { email: 'member@example.com' },
     update: {},
@@ -53,11 +67,11 @@ async function main() {
       phone: '08123456789',
       institution: 'Nusantics',
       segment: Segment.PROFESSIONAL,
-      membershipPackage: MembershipPackage.ADVANCED,
       interestAreas: ['Geology', 'Others'],
       createdAt: new Date(),
       updatedAt: new Date(),
-      user: { connect: { id: user.id } }
+      user: { connect: { id: user.id } },
+      membershipPackage: { connect: { id: membershipPackage.id } }
     }
   });
 
@@ -88,7 +102,7 @@ async function main() {
     }
   });
 
-  // 3. Non-member registers directly
+  // 4. Non-member registers directly
   const nonMemberRegistration = await prisma.programRegistration.create({
     data: {
       programId: program.id,
@@ -113,7 +127,7 @@ async function main() {
     }
   });
 
-  // 4. Admin registers someone manually
+  // 5. Admin registers someone manually
   const adminRegistration = await prisma.programRegistration.create({
     data: {
       programId: program.id,

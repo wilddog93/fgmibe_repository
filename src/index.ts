@@ -32,6 +32,8 @@ async function startServer() {
   }
 }
 
+startServer();
+
 const exitHandler = () => {
   if (server) {
     server.close(() => {
