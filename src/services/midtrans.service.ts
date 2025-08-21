@@ -1,9 +1,9 @@
 // src/services/midtrans.service.ts
 import crypto from 'crypto';
 import fetch from 'node-fetch';
-
-const BASE_URL = process.env.MIDTRANS_BASE_URL || 'https://api.midtrans.com';
+const BASE_URL = process.env.MIDTRANS_BASE_URL || 'https://api.sandbox.midtrans.com/';
 const SERVER_KEY = process.env.MIDTRANS_SERVER_KEY!;
+const CLIENT_KEY = process.env.MIDTRANS_CLIENT_KEY!;
 
 // Basic auth header
 function authHeader() {
@@ -19,6 +19,7 @@ export async function createTransactionQris(params: {
   amount: number;
   customerEmail: string;
   customerName: string;
+  customerPhone?: string | null;
 }) {
   const body = {
     payment_type: 'qris',
@@ -28,7 +29,8 @@ export async function createTransactionQris(params: {
     },
     customer_details: {
       email: params.customerEmail,
-      first_name: params.customerName
+      first_name: params.customerName,
+      phone: params.customerPhone
     }
     // gopay: {
     //   enable_callback: true, // optional
@@ -36,7 +38,7 @@ export async function createTransactionQris(params: {
     // }
   };
 
-  const res = await fetch(`${BASE_URL}/v2/charge`, {
+  const res = await fetch(`${BASE_URL}/charge`, {
     method: 'POST',
     headers: {
       Authorization: authHeader(),

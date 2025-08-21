@@ -1,14 +1,15 @@
 // src/services/webhook.service.ts
-import { PrismaClient, PaymentStatus, RegistrationSource, Segment } from '@prisma/client';
+import { PrismaClient, PaymentStatus, Segment } from '@prisma/client';
 import redis from '../config/redis';
 import { verifyNotificationSignature } from './midtrans.service';
+import logger from '../config/logger';
 
 const prisma = new PrismaClient();
 
 type MidtransNotif = {
-  transaction_status: string; // 'settlement','pending','expire','cancel','deny','capture','success'
+  transaction_status: string;
   order_id: string;
-  gross_amount: string; // string number
+  gross_amount: string;
   status_code: string;
   signature_key: string;
   fraud_status?: string;
@@ -38,7 +39,7 @@ function mapMidtransToPaymentStatus(s: string): PaymentStatus {
 }
 
 export async function handleMidtransWebhook(payload: MidtransNotif) {
-  // 1) verify signature
+  // 1) Verify signature
   const valid = verifyNotificationSignature({
     order_id: payload.order_id,
     status_code: payload.status_code,
@@ -46,39 +47,40 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
     signature_key: payload.signature_key
   });
   if (!valid) {
+    logger.error(`Invalid Midtrans signature for orderId=${payload.order_id}`);
     throw new Error('Invalid midtrans signature');
   }
 
-  // 2) idempotency: is payment already persisted?
-  const existing = await prisma.payment.findUnique({
-    where: { orderId: payload.order_id }
-  });
-
+  const orderId = payload.order_id;
   const status = mapMidtransToPaymentStatus(payload.transaction_status);
+  logger.info(`Webhook received: orderId=${orderId}, mappedStatus=${status}`);
 
+  // 2) Idempotency check
+  const existing = await prisma.payment.findUnique({
+    where: { orderId }
+  });
   if (existing) {
-    // Optional: update status if changed
     if (existing.status !== status) {
       await prisma.payment.update({
-        where: { orderId: payload.order_id },
+        where: { orderId },
         data: {
           status,
           rawPayload: payload as any,
           paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt
         }
       });
+      logger.info(`Payment updated for orderId=${orderId} → status=${status}`);
     }
     return existing;
   }
 
-  // 3) not in DB yet → read cache
-  const cacheRaw = await redis.get(`pay:${payload.order_id}`);
+  // 3) Try read from Redis
+  const cacheRaw = await redis.get(`pay:${orderId}`);
   if (!cacheRaw) {
-    // No cache – as a safeguard, you could log and stop, or create Payment only (without registration) for reconciliation.
-    // We'll create Payment-only to not lose the transaction audit:
+    logger.warn(`Cache missing for orderId=${orderId}, fallback to Payment-only`);
     return prisma.payment.create({
       data: {
-        orderId: payload.order_id,
+        orderId,
         email: '', // unknown
         amount: Math.floor(parseFloat(payload.gross_amount) || 0),
         currency: 'IDR',
@@ -104,48 +106,52 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
     method: string;
   };
 
-  // 4) only commit to DB on success/settlement (or capture)
+  // 4) If not COMPLETED yet → persist Payment only
   if (status !== 'COMPLETED') {
-    // Persist a Payment record (optional), but don’t create registration yet
+    logger.info(`Payment pending/failed for orderId=${orderId}, status=${status}`);
     return prisma.payment.create({
       data: {
-        orderId: payload.order_id,
+        orderId,
         email: cache.email,
         amount: cache.amount,
-        currency: 'IDR',
+        currency: cache.currency,
         status,
         rawPayload: payload as any
       }
     });
   }
 
-  // 5) commit Registration + Payment atomically
+  // 5) Commit Registration + Payment atomically
   const result = await prisma.$transaction(async (tx) => {
-    // Create or reuse registration (unique on [email, programId])
     const registration = await tx.programRegistration.upsert({
-      where: { email_programId: { email: cache.email, programId: cache.programId } },
-      update: {}, // if exists, we won't change detail on webhook
+      where: {
+        email_programId: {
+          email: cache.email,
+          programId: cache.programId
+        }
+      },
+      update: {},
       create: {
         programId: cache.programId,
-        memberId: cache.memberId,
+        memberId: cache.memberId ?? undefined,
         userId: cache.userId ?? undefined,
         email: cache.email,
         name: cache.name,
         phone: cache.phone ?? undefined,
         institution: cache.institution ?? undefined,
-        segment: cache.segment ?? undefined,
+        segment: cache.segment ?? null,
         programPackage: cache.programPackage ?? undefined,
-        source: cache.source === 'ADMIN' ? 'MEMBER' : (cache.source as any) // or keep as is
+        source: cache.source
       }
     });
 
     const payment = await tx.payment.create({
       data: {
-        orderId: payload.order_id,
+        orderId,
         email: cache.email,
         amount: cache.amount,
-        currency: 'IDR',
-        method: cache.method as any,
+        currency: cache.currency,
+        method: (cache.method as any) || (payload.payment_type?.toUpperCase() as any) || 'QRIS',
         gateway: 'MIDTRANS',
         status,
         rawPayload: payload as any,
@@ -158,8 +164,8 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
     return { registration, payment };
   });
 
-  // 6) cleanup cache
-  await redis.del(`pay:${payload.order_id}`);
+  logger.info(`Payment committed & cache cleared for orderId=${orderId}`);
+  await redis.del(`pay:${orderId}`);
 
   return result;
 }

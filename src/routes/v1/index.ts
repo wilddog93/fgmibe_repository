@@ -2,12 +2,16 @@ import express from 'express';
 import authRoute from './auth.route';
 import userRoute from './user.route';
 import docsRoute from './docs.route';
-import paymentRoute from './payment.route';
+import programRoute from './program.route';
 import config from '../../config/config';
 
 const router = express.Router();
 
 const defaultRoutes = [
+  {
+    path: '/programs',
+    route: programRoute
+  },
   {
     path: '/auth',
     route: authRoute
@@ -15,10 +19,6 @@ const defaultRoutes = [
   {
     path: '/users',
     route: userRoute
-  },
-  {
-    path: '/payment',
-    route: paymentRoute
   }
 ];
 
