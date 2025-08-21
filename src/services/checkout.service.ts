@@ -2,10 +2,17 @@
 import redis from '../config/redis';
 import { PrismaClient, PaymentMethod, Segment } from '@prisma/client';
 import { genOrderId } from '../utils/orderId';
-import { computePrice } from './pricing.service';
+import { computePriceProgram } from './pricing.service';
 import { createTransactionQris } from './midtrans.service';
 
 const prisma = new PrismaClient();
+
+type CheckoutResult = {
+  orderId: string;
+  amount: number;
+  currency: 'IDR';
+  midtrans: any;
+};
 
 type CheckoutInput = {
   programId: string;
@@ -14,19 +21,23 @@ type CheckoutInput = {
   phone?: string | null;
   institution?: string | null;
   segment?: Segment | null; // Segment | null
-  programPackage?: string | null;
   method?: PaymentMethod; // default QRIS
   userId?: number | null;
 };
 
-export async function startCheckout(input: CheckoutInput) {
+/**
+ * Create a program
+ * @param {CheckoutInput} programBody
+ * @returns {Promise<CheckoutResult>}
+ */
+
+const startCheckoutProgram = async (input: CheckoutInput): Promise<CheckoutResult> => {
   const normalizedEmail = input.email.trim().toLowerCase();
 
   // 1) compute price & member source
-  const { amount, source, memberId } = await computePrice({
+  const { amount, source, memberId } = await computePriceProgram({
     programId: input.programId,
-    email: normalizedEmail,
-    programPackage: input.programPackage
+    email: normalizedEmail
   });
 
   // 2) create orderId
@@ -35,7 +46,7 @@ export async function startCheckout(input: CheckoutInput) {
   // 3) call midtrans
   const midtransRes = await createTransactionQris({
     orderId,
-    amount,
+    amount: amount ?? 0,
     customerEmail: normalizedEmail,
     customerName: input.name,
     customerPhone: input.phone ?? undefined
@@ -49,7 +60,6 @@ export async function startCheckout(input: CheckoutInput) {
     phone: input.phone ?? null,
     institution: input.institution ?? null,
     segment: input.segment ?? null,
-    programPackage: input.programPackage ?? null,
     userId: input.userId ?? null,
     memberId, // from computePrice if any
     source, // MEMBER | NON_MEMBER
@@ -64,8 +74,10 @@ export async function startCheckout(input: CheckoutInput) {
 
   return {
     orderId,
-    amount,
+    amount: amount ?? 0,
     currency: 'IDR',
     midtrans: midtransRes // FE can render QR/token from here
   };
-}
+};
+
+export { startCheckoutProgram };

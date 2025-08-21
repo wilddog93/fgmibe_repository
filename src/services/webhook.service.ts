@@ -39,6 +39,7 @@ function mapMidtransToPaymentStatus(s: string): PaymentStatus {
 }
 
 export async function handleMidtransWebhook(payload: MidtransNotif) {
+  console.log(payload, 'webhook-service-server');
   // 1) Verify signature
   const valid = verifyNotificationSignature({
     order_id: payload.order_id,
@@ -55,13 +56,33 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
   const status = mapMidtransToPaymentStatus(payload.transaction_status);
   logger.info(`Webhook received: orderId=${orderId}, mappedStatus=${status}`);
 
+  // // 2) Idempotency check
+  // const existing = await prisma.payment.findUnique({
+  //   where: { orderId }
+  // });
+  // if (existing) {
+  //   if (existing.status !== status) {
+  //     await prisma.payment.update({
+  //       where: { orderId },
+  //       data: {
+  //         status,
+  //         rawPayload: payload as any,
+  //         paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt
+  //       }
+  //     });
+  //     logger.info(`Payment updated for orderId=${orderId} → status=${status}`);
+  //   }
+  //   return existing;
+  // }
+
   // 2) Idempotency check
   const existing = await prisma.payment.findUnique({
     where: { orderId }
   });
+
   if (existing) {
     if (existing.status !== status) {
-      await prisma.payment.update({
+      const updated = await prisma.payment.update({
         where: { orderId },
         data: {
           status,
@@ -70,7 +91,42 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
         }
       });
       logger.info(`Payment updated for orderId=${orderId} → status=${status}`);
+
+      // ⬇️ Kalau sekarang COMPLETED & belum ada registrasi → coba bikin registrasi dari Redis
+      if (status === 'COMPLETED' && !updated.registrationId) {
+        const cacheRaw = await redis.get(`pay:${orderId}`);
+        if (cacheRaw) {
+          const cache = JSON.parse(cacheRaw);
+          const registration = await prisma.programRegistration.upsert({
+            where: {
+              email_programId: { email: cache.email, programId: cache.programId }
+            },
+            update: {}, // bisa isi kalau mau update data registrasi existing
+            create: {
+              programId: cache.programId,
+              memberId: cache.memberId ?? null,
+              userId: cache.userId ?? null,
+              email: cache.email,
+              name: cache.name,
+              phone: cache.phone ?? undefined,
+              institution: cache.institution ?? undefined,
+              segment: cache.segment ?? null,
+              programPackage: cache.programPackage ?? undefined,
+              source: cache.source
+            }
+          });
+
+          await prisma.payment.update({
+            where: { orderId },
+            data: { registrationId: registration.id }
+          });
+
+          await redis.del(`pay:${orderId}`);
+          logger.info(`Registration created & linked for orderId=${orderId}`);
+        }
+      }
     }
+
     return existing;
   }
 
@@ -123,27 +179,48 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
 
   // 5) Commit Registration + Payment atomically
   const result = await prisma.$transaction(async (tx) => {
-    const registration = await tx.programRegistration.upsert({
-      where: {
-        email_programId: {
-          email: cache.email,
-          programId: cache.programId
-        }
-      },
-      update: {},
-      create: {
-        programId: cache.programId,
-        memberId: cache.memberId ?? undefined,
-        userId: cache.userId ?? undefined,
-        email: cache.email,
-        name: cache.name,
-        phone: cache.phone ?? undefined,
-        institution: cache.institution ?? undefined,
-        segment: cache.segment ?? null,
-        programPackage: cache.programPackage ?? undefined,
-        source: cache.source
-      }
+    // const registration = await tx.programRegistration.upsert({
+    //   where: {
+    //     email_programId: {
+    //       email: cache.email,
+    //       programId: cache.programId
+    //     }
+    //   },
+    //   update: {},
+    //   create: {
+    //     programId: cache.programId,
+    //     memberId: cache.memberId ?? undefined,
+    //     userId: cache.userId ?? undefined,
+    //     email: cache.email,
+    //     name: cache.name,
+    //     phone: cache.phone ?? undefined,
+    //     institution: cache.institution ?? undefined,
+    //     segment: cache.segment ?? null,
+    //     programPackage: cache.programPackage ?? undefined,
+    //     source: cache.source
+    //   }
+    // });
+
+    const existingReg = await tx.programRegistration.findUnique({
+      where: { email_programId: { email: cache.email, programId: cache.programId } }
     });
+
+    const registration = existingReg
+      ? existingReg
+      : await tx.programRegistration.create({
+          data: {
+            programId: cache.programId,
+            memberId: cache.memberId ?? null,
+            userId: cache.userId ?? null,
+            email: cache.email,
+            name: cache.name,
+            phone: cache.phone ?? undefined,
+            institution: cache.institution ?? undefined,
+            segment: cache.segment ?? null,
+            programPackage: cache.programPackage ?? undefined,
+            source: cache.source
+          }
+        });
 
     const payment = await tx.payment.create({
       data: {

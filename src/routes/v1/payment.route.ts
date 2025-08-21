@@ -3,15 +3,21 @@ import express from 'express';
 import { midtransController } from '../../controllers';
 import validate from '../../middlewares/validate';
 import { checkoutValidation } from '../../validations';
+import { webhookValidation } from '../../validations';
 
 const router = express.Router();
 
 router.post(
-  '/payment/checkout',
+  '/checkout/program',
   validate(checkoutValidation.checkoutSchema),
-  midtransController.createCheckout
+  midtransController.createCheckoutProgram
 );
-router.post('/payment/midtrans/webhook', midtransController.midtransWebhook);
+router.post(
+  '/midtrans/webhook',
+  validate(webhookValidation.webhookSchema),
+  midtransController.midtransWebhook
+);
+export default router;
 
 /**
  * @swagger
@@ -22,7 +28,7 @@ router.post('/payment/midtrans/webhook', midtransController.midtransWebhook);
 
 /**
  * @swagger
- * /payment/checkout:
+ * /payment/checkout/program:
  *   post:
  *     summary: Create payment checkout
  *     description: Midtrans checkout
@@ -42,7 +48,6 @@ router.post('/payment/midtrans/webhook', midtransController.midtransWebhook);
  *               - phone
  *               - institution
  *               - segment
- *               - programPackage
  *               - method
  *             properties:
  *               programId:
@@ -66,9 +71,6 @@ router.post('/payment/midtrans/webhook', midtransController.midtransWebhook);
  *                 type: string
  *                 enum: [STUDENT, FRESH_GRADUATE, PROFESSIONAL]
  *                 description: Segment
- *               programPackage:
- *                 type: string
- *                 description: Program package
  *               method:
  *                 type: string
  *                 enum: [QRIS, BANK_TRANSFER, EWALLET]
@@ -81,7 +83,6 @@ router.post('/payment/midtrans/webhook', midtransController.midtransWebhook);
  *               phone: 08123456789
  *               institution: NusaTen
  *               segment: FRESH_GRADUATE
- *               programPackage: STANDARD
  *               method: QRIS
  *     responses:
  *       "200":
@@ -111,4 +112,75 @@ router.post('/payment/midtrans/webhook', midtransController.midtransWebhook);
  *         $ref: '#/components/responses/Forbidden'
  */
 
-export default router;
+/**
+ * @swagger
+ * /payment/midtrans/webhook:
+ *   post:
+ *     summary: Midtrans webhook
+ *     description: Midtrans webhook
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - orderId
+ *               - status
+ *               - grossAmount
+ *               - statusCode
+ *               - signatureKey
+ *               - fraudStatus
+ *               - paymentType
+ *               - transactionTime
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 description: Order id
+ *               status:
+ *                 type: string
+ *                 description: Status
+ *               grossAmount:
+ *                 type: string
+ *                 description: Gross amount
+ *               statusCode:
+ *                 type: string
+ *                 description: Status code
+ *               signatureKey:
+ *                 type: string
+ *                 description: Signature key
+ *               fraudStatus:
+ *                 type: string
+ *                 description: Fraud status
+ *               paymentType:
+ *                 type: string
+ *                 description: Payment type
+ *               transactionTime:
+ *                 type: string
+ *                 description: Transaction time
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   description: OK
+ *                 result:
+ *                   type: object
+ *                   description: Result
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
+ */

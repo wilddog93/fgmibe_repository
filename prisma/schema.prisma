@@ -172,7 +172,7 @@ model ProgramRegistration {
   program  Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
   payments Payment[]
 
-  @@unique([email, programId])
+  @@unique([email, programId], name: "email_programId")
   @@index([programId])
   @@index([userId])
   @@index([memberId])
