@@ -10,7 +10,8 @@ const checkoutSchema = Joi.object({
   segment: Joi.string().valid('STUDENT', 'FRESH_GRADUATE', 'PROFESSIONAL').allow(null),
   programPackage: Joi.string().allow('', null),
   method: Joi.string().valid('QRIS', 'BANK_TRANSFER', 'EWALLET').default('QRIS'),
-  userId: Joi.number().allow(null)
+  userId: Joi.number().allow(null),
+  memberId: Joi.string().allow(null)
 });
 
 export default {

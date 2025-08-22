@@ -15,6 +15,7 @@ type MidtransNotif = {
   fraud_status?: string;
   payment_type?: string;
   transaction_time?: string;
+  transaction_id?: string;
 };
 
 function mapMidtransToPaymentStatus(s: string): PaymentStatus {
@@ -38,7 +39,7 @@ function mapMidtransToPaymentStatus(s: string): PaymentStatus {
   }
 }
 
-export async function handleMidtransWebhook(payload: MidtransNotif) {
+const handleMidtransWebhook = async (payload: MidtransNotif) => {
   console.log(payload, 'webhook-service-server');
   // 1) Verify signature
   const valid = verifyNotificationSignature({
@@ -56,25 +57,6 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
   const status = mapMidtransToPaymentStatus(payload.transaction_status);
   logger.info(`Webhook received: orderId=${orderId}, mappedStatus=${status}`);
 
-  // // 2) Idempotency check
-  // const existing = await prisma.payment.findUnique({
-  //   where: { orderId }
-  // });
-  // if (existing) {
-  //   if (existing.status !== status) {
-  //     await prisma.payment.update({
-  //       where: { orderId },
-  //       data: {
-  //         status,
-  //         rawPayload: payload as any,
-  //         paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt
-  //       }
-  //     });
-  //     logger.info(`Payment updated for orderId=${orderId} → status=${status}`);
-  //   }
-  //   return existing;
-  // }
-
   // 2) Idempotency check
   const existing = await prisma.payment.findUnique({
     where: { orderId }
@@ -87,6 +69,7 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
         data: {
           status,
           rawPayload: payload as any,
+          gatewayTransactionId: payload.transaction_id,
           paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt
         }
       });
@@ -172,7 +155,8 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
         amount: cache.amount,
         currency: cache.currency,
         status,
-        rawPayload: payload as any
+        rawPayload: payload as any,
+        gatewayTransactionId: payload.transaction_id
       }
     });
   }
@@ -245,4 +229,8 @@ export async function handleMidtransWebhook(payload: MidtransNotif) {
   await redis.del(`pay:${orderId}`);
 
   return result;
-}
+};
+
+export default {
+  handleMidtransWebhook
+};

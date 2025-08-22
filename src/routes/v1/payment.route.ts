@@ -2,8 +2,7 @@
 import express from 'express';
 import { midtransController } from '../../controllers';
 import validate from '../../middlewares/validate';
-import { checkoutValidation } from '../../validations';
-import { webhookValidation } from '../../validations';
+import { checkoutValidation, webhookValidation, midtransValidation } from '../../validations';
 
 const router = express.Router();
 
@@ -11,6 +10,11 @@ router.post(
   '/checkout/program',
   validate(checkoutValidation.checkoutSchema),
   midtransController.createCheckoutProgram
+);
+router.get(
+  '/status',
+  validate(midtransValidation.statusSchema),
+  midtransController.getPaymentStatus
 );
 router.post(
   '/midtrans/webhook',
@@ -110,6 +114,51 @@ export default router;
  *         $ref: '#/components/responses/Unauthorized'
  *       "403":
  *         $ref: '#/components/responses/Forbidden'
+ */
+
+/**
+ * @swagger
+ * /payment/status:
+ *   get:
+ *     summary: Get payment status
+ *     description: Midtrans status
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - order_id
+ *             properties:
+ *               order_id:
+ *                 type: string
+ *                 description: Order id
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   description: OK
+ *                 result:
+ *                   type: object
+ *                   description: Result
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
  */
 
 /**
