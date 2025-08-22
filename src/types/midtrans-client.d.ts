@@ -1,66 +1,33 @@
 declare module 'midtrans-client' {
-  interface SnapConfig {
+  export interface MidtransClientConfig {
     isProduction: boolean;
     serverKey: string;
     clientKey: string;
   }
 
-  interface TransactionRequest {
-    transaction_details: {
-      order_id: string;
-      gross_amount: number;
-    };
-    item_details?: Array<{
-      id?: string;
-      price: number;
-      quantity: number;
-      name: string;
-    }>;
-    customer_details?: {
-      first_name?: string;
-      last_name?: string;
-      full_name?: string;
-      email?: string;
-      phone?: string;
-    };
-    credit_card?: {
-      secure: boolean;
-    };
-    callbacks?: {
-      finish?: string;
-      error?: string;
-      pending?: string;
-    };
-    [key: string]: any;
-  }
-
-  class Snap {
-    constructor(config: SnapConfig);
-    createTransaction(
-      parameter: TransactionRequest
-    ): Promise<{ token: string; redirect_url: string }>;
-    createTransactionToken(parameter: TransactionRequest): Promise<string>;
-    createTransactionRedirectUrl(parameter: TransactionRequest): Promise<string>;
-    transaction: {
-      status(orderId: string): Promise<any>;
-      approve(orderId: string): Promise<any>;
-      cancel(orderId: string): Promise<any>;
-      expire(orderId: string): Promise<any>;
-      refund(orderId: string, parameter: any): Promise<any>;
-    };
-  }
-
-  class CoreApi {
-    constructor(config: SnapConfig);
+  export class CoreApi {
+    constructor(options: MidtransClientConfig);
     charge(parameter: any): Promise<any>;
+    capture(parameter: any): Promise<any>;
     transaction: {
-      status(orderId: string): Promise<any>;
-      approve(orderId: string): Promise<any>;
-      cancel(orderId: string): Promise<any>;
-      expire(orderId: string): Promise<any>;
-      refund(orderId: string, parameter: any): Promise<any>;
+      status(transactionId: string): Promise<any>;
+      cancel(transactionId: string): Promise<any>;
+      approve(transactionId: string): Promise<any>;
+      deny(transactionId: string): Promise<any>;
     };
   }
 
-  export = { Snap, CoreApi };
+  export class Snap {
+    constructor(options: MidtransClientConfig);
+    createTransaction(parameter: any): Promise<any>;
+    createTransactionToken(parameter: any): Promise<any>;
+    createTransactionRedirectUrl(parameter: any): Promise<any>;
+  }
+
+  const midtransClient: {
+    CoreApi: typeof CoreApi;
+    Snap: typeof Snap;
+  };
+
+  export default midtransClient;
 }

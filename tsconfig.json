@@ -3,14 +3,29 @@
     "target": "es2016",
     "outDir": "./build",
     "module": "commonjs",
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ],
     "types": [
       "node"
     ],
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
     "strictNullChecks": true
-  }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true
+  },
 }

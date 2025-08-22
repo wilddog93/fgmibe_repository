@@ -1,5 +1,6 @@
 // src/services/midtrans.service.ts
 import crypto from 'crypto';
+import midtransClient from 'midtrans-client';
 import fetch from 'node-fetch';
 const BASE_URL = process.env.MIDTRANS_BASE_URL || 'https://app.sandbox.midtrans.com/snap/v1';
 const SERVER_KEY = process.env.MIDTRANS_SERVER_KEY!;
@@ -10,6 +11,13 @@ function authHeader() {
   const token = Buffer.from(`${SERVER_KEY}:`).toString('base64');
   return `Basic ${token}`;
 }
+
+// setup coreApi
+const core = new midtransClient.CoreApi({
+  isProduction: false,
+  serverKey: SERVER_KEY,
+  clientKey: CLIENT_KEY
+});
 
 // Create transaction (QRIS example via Core API)
 // Refer Midtrans docs untuk payload lain (e.g. ewallet, bank_transfer, snap)
