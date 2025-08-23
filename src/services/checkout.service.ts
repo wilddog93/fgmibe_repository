@@ -1,9 +1,18 @@
 // src/services/checkout.service.ts
 import redis from '../config/redis';
-import { PrismaClient, PaymentMethod, Segment } from '@prisma/client';
+import {
+  PrismaClient,
+  PaymentMethod,
+  Segment,
+  ProgramRegistration,
+  User,
+  Member
+} from '@prisma/client';
 import { genOrderId } from '../utils/orderId';
 import { computePriceProgram } from './pricing.service';
 import { createTransactionCharge, createTransactionQris } from './midtrans.service';
+import ApiError from '../utils/ApiError';
+import httpStatus from 'http-status';
 
 const prisma = new PrismaClient();
 
@@ -83,6 +92,28 @@ const startCheckoutProgram = async (input: CheckoutInput): Promise<CheckoutResul
 const checkoutProgram = async (input: CheckoutInput): Promise<CheckoutResult> => {
   const normalizedEmail = input.email.trim().toLowerCase();
 
+  // check email registration
+  const isRegistered = await prisma.programRegistration.findUnique({
+    where: {
+      email_programId: {
+        email: normalizedEmail,
+        programId: input.programId
+      }
+    },
+    select: {
+      email: true,
+      programId: true,
+      program: true
+    }
+  });
+
+  if (isRegistered) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Email already registered in ${isRegistered.program.name}`
+    );
+  }
+
   // 1) compute price & member source
   const { amount, source, memberId } = await computePriceProgram({
     programId: input.programId,
@@ -142,4 +173,65 @@ const checkoutProgram = async (input: CheckoutInput): Promise<CheckoutResult> =>
   };
 };
 
-export default { startCheckoutProgram, checkoutProgram };
+type QueryFilter = {
+  email?: string;
+  programId?: string;
+};
+
+type CheckEmailResult =
+  | { type: 'user'; result: User[] | any }
+  | { type: 'member'; result: Member[] | any }
+  | { type: 'unregistered'; result: any };
+
+/**
+ * Check email registration from User/Member/Program Registration email
+ * @param {Object} filter - Prisma filter
+ * @param {Object} options - Query options
+ * @returns {Promise<CheckEmailResult>}
+ */
+
+export const checkEmailRegistration = async (filter: QueryFilter): Promise<CheckEmailResult> => {
+  const users = await prisma.user.findMany({
+    where: {
+      email: {
+        contains: filter.email?.toLowerCase(),
+        mode: 'insensitive'
+      }
+      // email: {
+      //   contains: filter.email?.toLowerCase(),
+      //   mode: 'insensitive'
+      // }
+    },
+    select: {
+      email: true,
+      name: true,
+      phone: true,
+      member: true
+    }
+  });
+  if (users.length) {
+    return { type: 'user', result: users };
+  }
+
+  const members = await prisma.member.findMany({
+    where: {
+      email: {
+        contains: filter.email?.toLowerCase(),
+        mode: 'insensitive'
+      }
+    },
+    select: {
+      email: true,
+      name: true,
+      phone: true,
+      segment: true,
+      institution: true
+    }
+  });
+  if (members.length) {
+    return { type: 'member', result: members };
+  }
+  return { type: 'unregistered', result: [] };
+};
+
+export default { startCheckoutProgram, checkoutProgram, checkEmailRegistration };

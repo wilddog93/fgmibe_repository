@@ -126,7 +126,6 @@ const queryPrograms = async <Key extends keyof Program>(
     }
   };
 
-  console.log(filter, 'query-server');
   // count total
   const totalItems = await prisma.program.count({ where: query });
 

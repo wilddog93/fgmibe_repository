@@ -6,15 +6,17 @@ import { checkoutValidation, webhookValidation, midtransValidation } from '../..
 
 const router = express.Router();
 
-router.post(
-  '/checkout/program',
-  validate(checkoutValidation.checkoutSchema),
-  midtransController.createCheckoutProgram
-);
 router.get(
   '/status',
   validate(midtransValidation.statusSchema),
   midtransController.getPaymentStatus
+);
+router.get('/check/email', midtransController.checkEmailRegistration);
+
+router.post(
+  '/checkout/program',
+  validate(checkoutValidation.checkoutSchema),
+  midtransController.createCheckoutProgram
 );
 router.post(
   '/midtrans/webhook',
@@ -114,6 +116,57 @@ export default router;
  *         $ref: '#/components/responses/Unauthorized'
  *       "403":
  *         $ref: '#/components/responses/Forbidden'
+ */
+
+/**
+ *
+ * @swagger
+ * /payment/check/email:
+ *   get:
+ *     summary: Check email registration from User/Member/Program Registration email
+ *     description: Check email registration from User/Member/Program Registration email
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: Email
+ *       - in: query
+ *         name: programId
+ *         schema:
+ *           type: string
+ *         description: Program id
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   description: OK
+ *                 result:
+ *                   type: object
+ *                   description: Result
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "409":
+ *         $ref: '#/components/responses/Conflict'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
+ *       "503":
+ *         $ref: '#/components/responses/ServiceUnavailable'
  */
 
 /**
