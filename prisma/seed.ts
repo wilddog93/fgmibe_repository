@@ -59,7 +59,9 @@ async function main() {
 
   // Create Member
   const member = await prisma.member.upsert({
-    where: { email: 'member@example.com' },
+    where: {
+      email: 'member@example.com'
+    },
     update: {},
     create: {
       email: 'member@example.com',

@@ -8,7 +8,7 @@ type PriceInputProgram = {
 };
 
 type PriceInputMember = {
-  membershipId: string;
+  membershipPackageId: string;
 };
 
 export async function computePriceProgram({ programId, email }: PriceInputProgram) {
@@ -26,12 +26,14 @@ export async function computePriceProgram({ programId, email }: PriceInputProgra
   };
 }
 
-export async function computePriceMember({ membershipId }: PriceInputMember) {
+export async function computePriceMember({ membershipPackageId }: PriceInputMember) {
   const memberPrice = await prisma.membershipPackage.findUnique({
-    where: { id: membershipId ?? '' }
+    where: { id: membershipPackageId ?? '' }
   });
 
   return {
+    id: memberPrice?.id,
+    name: memberPrice?.name,
     amount: memberPrice?.price
   };
 }

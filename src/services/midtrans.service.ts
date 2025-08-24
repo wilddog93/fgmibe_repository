@@ -64,7 +64,7 @@ export const createTransactionCharge = async (params: {
  * @param {string} customerPhone
  * @returns {Promise}
  */
-export const createTransactionQris = async (params: {
+export const createTransactionSnap = async (params: {
   orderId: string;
   amount: number;
   customerEmail: string;
@@ -165,7 +165,7 @@ export function verifyNotificationSignature(input: {
 }
 
 export default {
-  createTransactionQris,
+  createTransactionSnap,
   createTransactionCharge,
   getTransactionStatus,
   verifyNotificationSignature

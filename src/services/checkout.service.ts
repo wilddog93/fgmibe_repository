@@ -6,11 +6,12 @@ import {
   Segment,
   ProgramRegistration,
   User,
-  Member
+  Member,
+  MemberStatus
 } from '@prisma/client';
 import { genOrderId } from '../utils/orderId';
-import { computePriceProgram } from './pricing.service';
-import { createTransactionCharge, createTransactionQris } from './midtrans.service';
+import { computePriceMember, computePriceProgram } from './pricing.service';
+import { createTransactionCharge, createTransactionSnap } from './midtrans.service';
 import ApiError from '../utils/ApiError';
 import httpStatus from 'http-status';
 
@@ -35,6 +36,21 @@ type CheckoutInput = {
   memberId?: string | null;
 };
 
+type CheckoutMemberInput = {
+  membershipPackageId: string;
+  email: string;
+  name: string;
+  phone?: string | null;
+  institution?: string | null;
+  segment?: Segment | null; // Segment | null
+  interestAreas?: string[];
+  programPackage?: string | null;
+  joinDate?: Date | string;
+  status?: MemberStatus;
+  method?: PaymentMethod; // default QRIS
+  userId?: number | null;
+};
+
 /**
  * Create a program
  * @param {CheckoutInput} programBody
@@ -53,7 +69,7 @@ const startCheckoutProgram = async (input: CheckoutInput): Promise<CheckoutResul
   const orderId = genOrderId('PRG');
 
   // 3) call midtrans
-  const midtransRes = await createTransactionQris({
+  const midtransRes = await createTransactionSnap({
     orderId,
     amount: amount ?? 0,
     customerEmail: normalizedEmail,
@@ -173,6 +189,77 @@ const checkoutProgram = async (input: CheckoutInput): Promise<CheckoutResult> =>
   };
 };
 
+const checkoutRegisterMember = async (input: CheckoutMemberInput): Promise<CheckoutResult> => {
+  const normalizedEmail = input.email.trim().toLowerCase();
+  // check email member
+  const isMember = await prisma.member.findUnique({
+    where: {
+      email: normalizedEmail
+    },
+    select: {
+      email: true,
+      name: true,
+      phone: true,
+      institution: true,
+      segment: true,
+      joinDate: true,
+      status: true
+    }
+  });
+  if (isMember) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `Email already registered in ${isMember.name}`);
+  }
+  // 1) compute price & member source
+  const { id, name, amount } = await computePriceMember({
+    membershipPackageId: input.membershipPackageId
+  });
+  // 2) create orderId
+  const orderId = genOrderId('MEM');
+  // body for charge
+  const params = {
+    orderId,
+    amount: amount ?? 0,
+    customerDetails: {
+      email: normalizedEmail,
+      first_name: input.name,
+      phone: input.phone ?? undefined
+    },
+    itemDetails: [
+      {
+        id: id,
+        name: name,
+        price: amount ?? 0,
+        quantity: 1
+      }
+    ]
+  };
+  // 3) call midtrans
+  const midtransRes = await createTransactionCharge(params);
+  // 4) store to Redis (TTL 2h)
+  const cache = {
+    membershipPackageId: input.membershipPackageId,
+    email: normalizedEmail,
+    name: input.name,
+    phone: input.phone ?? null,
+    institution: input.institution ?? null,
+    segment: input.segment ?? null,
+    interestAreas: input.interestAreas ?? [],
+    userId: input.userId ?? null,
+    amount,
+    currency: 'IDR',
+    method: input.method ?? 'QRIS'
+  };
+  await redis.set(`pay:${orderId}`, JSON.stringify(cache), {
+    EX: 60 * 60 * 2
+  });
+  return {
+    orderId,
+    amount: amount ?? 0,
+    currency: 'IDR',
+    midtrans: midtransRes // FE can render QR/token from here
+  };
+};
+
 type QueryFilter = {
   email?: string;
   programId?: string;
@@ -197,10 +284,6 @@ export const checkEmailRegistration = async (filter: QueryFilter): Promise<Check
         contains: filter.email?.toLowerCase(),
         mode: 'insensitive'
       }
-      // email: {
-      //   contains: filter.email?.toLowerCase(),
-      //   mode: 'insensitive'
-      // }
     },
     select: {
       email: true,
