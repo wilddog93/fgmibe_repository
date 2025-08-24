@@ -317,4 +317,33 @@ export const checkEmailRegistration = async (filter: QueryFilter): Promise<Check
   return { type: 'unregistered', result: [] };
 };
 
-export default { startCheckoutProgram, checkoutProgram, checkEmailRegistration };
+export const checkEmailRegistrationMember = async (
+  filter: QueryFilter
+): Promise<CheckEmailResult> => {
+  const users = await prisma.member.findMany({
+    where: {
+      email: {
+        contains: filter?.email?.toLowerCase(),
+        mode: 'insensitive'
+      }
+    },
+    select: {
+      email: true,
+      name: true,
+      phone: true,
+      institution: true
+    }
+  });
+  if (users.length) {
+    return { type: 'member', result: users };
+  }
+  return { type: 'unregistered', result: [] };
+};
+
+export default {
+  startCheckoutProgram,
+  checkoutProgram,
+  checkEmailRegistration,
+  checkEmailRegistrationMember,
+  checkoutRegisterMember
+};

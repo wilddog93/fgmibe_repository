@@ -11,12 +11,18 @@ router.get(
   validate(midtransValidation.statusSchema),
   midtransController.getPaymentStatus
 );
-router.get('/check/email', midtransController.checkEmailRegistration);
+router.get('/check/email-register-program', midtransController.checkEmailRegistration);
+router.get('/check/email-register-member', midtransController.checkEmailRegistrationMember);
 
 router.post(
   '/checkout/program',
   validate(checkoutValidation.checkoutSchema),
   midtransController.createCheckoutProgram
+);
+router.post(
+  '/checkout/member',
+  validate(checkoutValidation.checkoutMemberSchema),
+  midtransController.createCheckoutMember
 );
 router.post(
   '/midtrans/webhook',
@@ -121,7 +127,7 @@ export default router;
 /**
  *
  * @swagger
- * /payment/check/email:
+ * /payment/check/email-register-program:
  *   get:
  *     summary: Check email registration from User/Member/Program Registration email
  *     description: Check email registration from User/Member/Program Registration email
