@@ -10,7 +10,7 @@ import {
   ProgramCategory
 } from '@prisma/client';
 
-import bcrypt from 'bcryptjs';
+import { DefaultPassword } from '../src/utils';
 
 const prisma = new PrismaClient();
 
@@ -51,8 +51,10 @@ async function main() {
     update: {},
     create: {
       email: 'ridhoajibx@gmail.com',
-      name: 'Ridho Fauzi',
-      password: await bcrypt.hash('Password123!', 10),
+      name: 'Jumakri Ridho Fauzi',
+      phone: '08123456789',
+      isEmailVerified: true,
+      password: DefaultPassword,
       role: 'ADMIN'
     }
   });
@@ -60,13 +62,13 @@ async function main() {
   // Create Member
   const member = await prisma.member.upsert({
     where: {
-      email: 'member@example.com'
+      email: user.email
     },
     update: {},
     create: {
-      email: 'member@example.com',
-      name: 'Ridho Fauzi',
-      phone: '08123456789',
+      email: user.email,
+      name: user.name ?? 'Jumakri Ridho Fauzi',
+      phone: user.phone,
       institution: 'Nusantics',
       segment: Segment.PROFESSIONAL,
       interestAreas: ['Geology', 'Others'],
