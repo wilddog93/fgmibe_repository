@@ -4,10 +4,13 @@ services:
   node-app:
     build: .
     image: node-app
-    ports:
-      - '3000:3000'
+    container_name: node-app
+    restart: always
+    expose:
+      - '3000'
     depends_on:
       - postgresdb
+      - redis
     volumes:
       - .:/usr/src/node-app
       - /usr/src/node-app/node_modules
@@ -15,7 +18,8 @@ services:
       - node-network
 
   postgresdb:
-    image: postgres
+    image: postgres:15
+    container_name: postgresdb
     restart: always
     environment:
       - POSTGRES_USER=postgres
@@ -33,10 +37,38 @@ services:
       - node-network
 
   redis:
-    image: redis
+    image: redis:7
+    container_name: redis
     restart: always
     ports:
       - '6379:6379'
+    networks:
+      - node-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certbot:/etc/letsencrypt
+      - ./nginx/html:/usr/share/nginx/html
+    depends_on:
+      - node-app
+    networks:
+      - node-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./nginx/certbot:/etc/letsencrypt
+      - ./nginx/html:/usr/share/nginx/html
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do certbot renew --webroot -w /usr/share/nginx/html; sleep 12h & wait $${!}; done"
     networks:
       - node-network
 
