@@ -1,31 +1,57 @@
 services:
   node-app:
     build: .
-    image: node-app:dev
-    container_name: node-app-dev
+    image: node-app:prod
+    container_name: node-app-prod
     working_dir: /usr/src/node-app
     environment:
-      - NODE_ENV=development
-      # aktifkan polling jika perlu (watcher di VM/remote fs)
-      # - CHOKIDAR_USEPOLLING=1
-      # - WATCHPACK_POLLING=true
-    command: yarn dev -L
+      - NODE_ENV=production
+      - PORT=4000
+      # - DATABASE_URL=${DATABASE_URL}
+      # - REDIS_URL=${REDIS_URL}
+    command: node dist/server.js
     restart: unless-stopped
-    ports:
-      - '4000:4000'
-    volumes:
-      - .:/usr/src/node-app # tambahkan :Z jika server RHEL/Alma/Rocky (SELinux)
-      - node_modules:/usr/src/node-app/node_modules
+    expose:
+      - '4000'
     depends_on:
       postgresdb:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - node-network
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:4000/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [node-network]
 
-volumes:
-  node_modules:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certbot:/etc/letsencrypt
+      - ./nginx/html:/usr/share/nginx/html
+    depends_on: [node-app]
+    networks: [node-network]
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    restart: unless-stopped
+    volumes:
+      - ./nginx/certbot:/etc/letsencrypt
+      - ./nginx/html:/usr/share/nginx/html
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do
+      certbot renew --webroot -w /usr/share/nginx/html --quiet;
+      sleep 12h & wait $${!};
+      done"
+    networks: [node-network]
 
 networks:
   node-network:
