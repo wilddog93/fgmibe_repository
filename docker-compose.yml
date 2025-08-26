@@ -7,7 +7,7 @@ services:
     container_name: node-app
     restart: always
     expose:
-      - '3000'
+      - '4000'
     depends_on:
       - postgresdb
       - redis
