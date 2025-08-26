@@ -13,7 +13,7 @@ const createCheckoutProgram = catchAsync(async (req: Request, res: Response) => 
 
 const createCheckoutProgramSnap = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
-  const data = await checkoutService.startCheckoutProgram(payload);
+  const data = await checkoutService.checkoutProgramSnap(payload);
   res.status(httpStatus.OK).send(data);
 });
 
@@ -29,9 +29,9 @@ const midtransWebhook = catchAsync(async (req: Request, res: Response) => {
   res.status(httpStatus.OK).send({ ok: true, result });
 });
 
-const checkEmailRegistration = catchAsync(async (req: Request, res: Response) => {
+const checkEmailRegistrationProgram = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, ['email']);
-  const result = await checkoutService.checkEmailRegistration(filter);
+  const result = await checkoutService.checkEmailRegistrationProgram(filter);
   res.status(httpStatus.OK).send(result);
 });
 
@@ -53,7 +53,7 @@ export default {
   createCheckoutProgramSnap,
   midtransWebhook,
   getPaymentStatus,
-  checkEmailRegistration,
+  checkEmailRegistrationProgram,
   checkEmailRegistrationMember,
   createCheckoutMember
 };

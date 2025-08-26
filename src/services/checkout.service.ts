@@ -56,7 +56,7 @@ type CheckoutMemberInput = {
  * @param {CheckoutInput} programBody
  * @returns {Promise<CheckoutResult>}
  */
-const startCheckoutProgram = async (input: CheckoutInput): Promise<CheckoutResult> => {
+const checkoutProgramSnap = async (input: CheckoutInput): Promise<CheckoutResult> => {
   const normalizedEmail = input.email.trim().toLowerCase();
 
   // 1) compute price & member source
@@ -68,8 +68,8 @@ const startCheckoutProgram = async (input: CheckoutInput): Promise<CheckoutResul
   // 2) create orderId
   const orderId = genOrderId('PRG');
 
-  // 3) call midtrans
-  const midtransRes = await createTransactionSnap({
+  // 3) body for snap
+  const params = {
     orderId,
     amount: amount ?? 0,
     customerDetails: {
@@ -85,7 +85,10 @@ const startCheckoutProgram = async (input: CheckoutInput): Promise<CheckoutResul
         quantity: 1
       }
     ]
-  });
+  };
+
+  // 3) call midtrans
+  const midtransRes = await createTransactionSnap(params);
 
   // 4) store to Redis (TTL 2h)
   const cache = {
@@ -270,6 +273,77 @@ const checkoutRegisterMember = async (input: CheckoutMemberInput): Promise<Check
   };
 };
 
+const checkoutRegisterMemberSnap = async (input: CheckoutMemberInput): Promise<CheckoutResult> => {
+  const normalizedEmail = input.email.trim().toLowerCase();
+  // check email member
+  const isMember = await prisma.member.findUnique({
+    where: {
+      email: normalizedEmail
+    },
+    select: {
+      email: true,
+      name: true,
+      phone: true,
+      institution: true,
+      segment: true,
+      joinDate: true,
+      status: true
+    }
+  });
+  if (isMember) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `Email already registered in ${isMember.name}`);
+  }
+  // 1) compute price & member source
+  const { id, name, amount } = await computePriceMember({
+    membershipPackageId: input.membershipPackageId
+  });
+  // 2) create orderId
+  const orderId = genOrderId('MEM');
+  // body for charge
+  const params = {
+    orderId,
+    amount: amount ?? 0,
+    customerDetails: {
+      email: normalizedEmail,
+      first_name: input.name,
+      phone: input.phone ?? undefined
+    },
+    itemDetails: [
+      {
+        id: id,
+        name: name,
+        price: amount ?? 0,
+        quantity: 1
+      }
+    ]
+  };
+  // 3) call midtrans
+  const midtransRes = await createTransactionSnap(params);
+  // 4) store to Redis (TTL 2h)
+  const cache = {
+    membershipPackageId: input.membershipPackageId,
+    email: normalizedEmail,
+    name: input.name,
+    phone: input.phone ?? null,
+    institution: input.institution ?? null,
+    segment: input.segment ?? null,
+    interestAreas: input.interestAreas ?? [],
+    userId: input.userId ?? null,
+    amount,
+    currency: 'IDR',
+    method: input.method ?? 'QRIS'
+  };
+  await redis.set(`pay:${orderId}`, JSON.stringify(cache), {
+    EX: 60 * 60 * 2
+  });
+  return {
+    orderId,
+    amount: amount ?? 0,
+    currency: 'IDR',
+    midtrans: midtransRes // FE can render QR/token from here
+  };
+};
+
 type QueryFilter = {
   email?: string;
   programId?: string;
@@ -287,7 +361,9 @@ type CheckEmailResult =
  * @returns {Promise<CheckEmailResult>}
  */
 
-export const checkEmailRegistration = async (filter: QueryFilter): Promise<CheckEmailResult> => {
+export const checkEmailRegistrationProgram = async (
+  filter: QueryFilter
+): Promise<CheckEmailResult> => {
   const users = await prisma.user.findMany({
     where: {
       email: {
@@ -351,9 +427,10 @@ export const checkEmailRegistrationMember = async (
 };
 
 export default {
-  startCheckoutProgram,
   checkoutProgram,
-  checkEmailRegistration,
-  checkEmailRegistrationMember,
-  checkoutRegisterMember
+  checkoutProgramSnap,
+  checkEmailRegistrationProgram,
+  checkoutRegisterMember,
+  checkoutRegisterMemberSnap,
+  checkEmailRegistrationMember
 };
