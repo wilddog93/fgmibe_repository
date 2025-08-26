@@ -1,6 +1,9 @@
 services:
   node-app:
-    build: .
+    build:
+      context: .
+      args:
+        BUILD_DIR: build
     image: node-app:prod
     container_name: node-app-prod
     working_dir: /usr/src/node-app
@@ -9,7 +12,7 @@ services:
       - PORT=4000
       # - DATABASE_URL=${DATABASE_URL}
       # - REDIS_URL=${REDIS_URL}
-    command: node dist/server.js
+    command: ['node', 'build/index.js']
     restart: unless-stopped
     expose:
       - '4000'
