@@ -1,39 +1,45 @@
 # syntax=docker/dockerfile:1.6
 
-### 1) Install deps + generate Prisma client
+########################################
+# 1) Dependencies
+########################################
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
-# (opsional, sering tak perlu) library umum; uncomment kalau butuh
-# RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY package.json yarn.lock ./
-# copy schema dulu agar prisma generate bisa di-cache
+# (opsional bila pakai Prisma)
 COPY prisma ./prisma
-# cache yarn (aktif kalau DOCKER_BUILDKIT=1)
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
     yarn install --frozen-lockfile
-# generate prisma client jika dipakai
+# generate prisma client jika ada, abaikan kalau tidak ada prisma
 RUN npx prisma generate || true
 
-### 2) Build aplikasi (mis. TypeScript -> dist)
+########################################
+# 2) Build
+########################################
 FROM node:20-bookworm-slim AS build
 WORKDIR /app
+ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NODE_ENV=production
-# sesuaikan kalau tidak pakai TS: hapus 'yarn build'
-RUN yarn build && yarn cache clean
+# Pastikan script build ada dan menghasilkan folder dist/
+RUN yarn build
 
-### 3) Runner minimal, non-root
+# Fail fast kalau dist tidak ada (biar error-nya jelas)
+RUN test -d dist || (echo "ERROR: Folder 'dist' tidak ditemukan setelah build. Cek script build & tsconfig 'outDir'." && ls -la && exit 1)
+
+########################################
+# 3) Runtime
+########################################
 FROM node:20-bookworm-slim AS runner
 WORKDIR /usr/src/node-app
 ENV NODE_ENV=production
 ENV PORT=4000
-# pakai user 'node' bawaan image
+# folder output build (kalau nanti ingin ganti ke 'build', tinggal ubah ENV ini)
+ENV BUILD_DIR=build
 USER node
-# hanya file yang perlu untuk runtime
 COPY --chown=node:node package.json yarn.lock ./
 COPY --chown=node:node --from=deps /app/node_modules ./node_modules
-COPY --chown=node:node --from=build /app/dist ./dist
+COPY --chown=node:node --from=build /app/${BUILD_DIR} ./${BUILD_DIR}
 EXPOSE 4000
-# sesuaikan entry point kamu
-CMD ["node", "dist/server.js"]
+# pakai shell form agar $BUILD_DIR diexpand
+CMD node $BUILD_DIR/server.js
