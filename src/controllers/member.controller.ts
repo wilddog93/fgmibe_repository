@@ -4,37 +4,6 @@ import ApiError from '../utils/ApiError';
 import catchAsync from '../utils/catchAsync';
 import { memberService, userService } from '../services';
 
-const createUser = catchAsync(async (req, res) => {
-  const { email, password, name, role } = req.body;
-  const user = await userService.createUser(email, password, name, role);
-  res.status(httpStatus.CREATED).send(user);
-});
-
-const getUsers = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'role']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await userService.queryUsers(filter, options);
-  res.send(result);
-});
-
-const getUser = catchAsync(async (req, res) => {
-  const user = await userService.getUserById(req.params.userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
-  res.send(user);
-});
-
-const updateUser = catchAsync(async (req, res) => {
-  const user = await userService.updateUserById(req.params.userId, req.body);
-  res.send(user);
-});
-
-const deleteUser = catchAsync(async (req, res) => {
-  await userService.deleteUserById(req.params.userId);
-  res.status(httpStatus.NO_CONTENT).send();
-});
-
 const createMember = catchAsync(async (req, res) => {
   const {
     name,
@@ -45,8 +14,8 @@ const createMember = catchAsync(async (req, res) => {
     interestAreas,
     joinDate,
     status,
-    userId,
-    membershipPackageId
+    membershipPackageId,
+    userId
   } = req.body;
   const member = await memberService.createMember(
     name,
@@ -57,8 +26,8 @@ const createMember = catchAsync(async (req, res) => {
     interestAreas,
     joinDate,
     status,
-    userId,
-    membershipPackageId
+    membershipPackageId,
+    userId
   );
   res.status(httpStatus.CREATED).send(member);
 });
@@ -80,10 +49,28 @@ const getMembers = catchAsync(async (req, res) => {
   res.send(result);
 });
 
+const getMember = catchAsync(async (req, res) => {
+  const member = await memberService.getMemberById(req.params.memberId);
+  if (!member) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Member not found');
+  }
+  res.send(member);
+});
+
+const updateMember = catchAsync(async (req, res) => {
+  const member = await memberService.updateMemberById(req.params.memberId, req.body);
+  res.send(member);
+});
+
+const deleteMember = catchAsync(async (req, res) => {
+  await memberService.deleteMemberById(req.params.memberId);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
 export default {
-  createUser,
-  getUsers,
-  getUser,
-  updateUser,
-  deleteUser
+  createMember,
+  getMembers,
+  getMember,
+  updateMember,
+  deleteMember
 };

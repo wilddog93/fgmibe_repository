@@ -4,6 +4,20 @@ import prisma from '../client';
 import ApiError from '../utils/ApiError';
 import bcrypt from 'bcryptjs';
 
+export interface QueryMemberFilter {
+  id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  institution?: string;
+  segment?: Segment;
+  interestAreas?: string[];
+  joinDate?: Date | string;
+  status?: MemberStatus;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
 type CacheMembership = {
   name: string;
   email: string;
@@ -16,12 +30,21 @@ type CacheMembership = {
   defaultPassword?: string; // opsional; kalau kosong pakai default
 };
 
+type QueryResult = {
+  data: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalItems: number;
+    totalPages: number;
+  };
+};
+
 /**
  * Create member x user
  * @param {Object} memberBody
  * @returns {Promise<Member>}
  */
-
 export const createMemberAndUser = async (tx: Prisma.TransactionClient, cache: CacheMembership) => {
   const email = cache.email.trim().toLowerCase();
   const seg: Segment = (cache.segment as Segment) ?? 'BASIC';
@@ -102,7 +125,6 @@ export const createMemberAndUser = async (tx: Prisma.TransactionClient, cache: C
  * @param {Object} memberBody
  * @returns {Promise<Member>}
  */
-
 const createMember = async (
   name: string,
   email: string,
@@ -235,7 +257,6 @@ const updateMemberById = async <Key extends keyof Member>(
  * @param {string} memberId
  * @returns {Promise<Member>}
  */
-
 const deleteMemberById = async (memberId: string): Promise<Member> => {
   const member = await getMemberById(memberId);
   if (!member) {
@@ -254,32 +275,8 @@ const deleteMemberById = async (memberId: string): Promise<Member> => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>}
  */
-
-export interface MemberTypeFilter {
-  id?: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  institution?: string;
-  segment?: Segment;
-  interestAreas?: string[];
-  joinDate?: Date | string;
-  status?: MemberStatus;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
-}
-
-type QueryResult = {
-  data: any[];
-  pagination: {
-    page: number;
-    limit: number;
-    totalItems: number;
-    totalPages: number;
-  };
-};
 const queryMembers = async <Key extends keyof Member>(
-  filter: MemberTypeFilter,
+  filter: QueryMemberFilter,
   options: {
     limit?: number;
     page?: number;

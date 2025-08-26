@@ -7,3 +7,4 @@ export { default as midtransService } from './midtrans.service';
 export { default as checkoutService } from './checkout.service';
 export { default as webhookService } from './webhook.service';
 export { default as memberService } from './member.service';
+export { default as membershipService } from './membership.service';

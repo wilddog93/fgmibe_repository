@@ -4,3 +4,5 @@ export { default as checkoutValidation } from './checkout.validation';
 export { default as programValidation } from './program.validation';
 export { default as webhookValidation } from './webhook.validation';
 export { default as midtransValidation } from './midtrans.validation';
+export { default as membershipValidation } from './membership.validation';
+export { default as memberValidation } from './member.validation';

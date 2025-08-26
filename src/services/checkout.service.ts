@@ -51,6 +51,16 @@ type CheckoutMemberInput = {
   userId?: number | null;
 };
 
+type QueryFilter = {
+  email?: string;
+  programId?: string;
+};
+
+type CheckEmailResult =
+  | { type: 'user'; result: User[] | any }
+  | { type: 'member'; result: Member[] | any }
+  | { type: 'unregistered'; result: any };
+
 /**
  * Create a program
  * @param {CheckoutInput} programBody
@@ -343,16 +353,6 @@ const checkoutRegisterMemberSnap = async (input: CheckoutMemberInput): Promise<C
     midtrans: midtransRes // FE can render QR/token from here
   };
 };
-
-type QueryFilter = {
-  email?: string;
-  programId?: string;
-};
-
-type CheckEmailResult =
-  | { type: 'user'; result: User[] | any }
-  | { type: 'member'; result: Member[] | any }
-  | { type: 'unregistered'; result: any };
 
 /**
  * Check email registration from User/Member/Program Registration email
