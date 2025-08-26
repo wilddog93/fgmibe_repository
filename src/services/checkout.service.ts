@@ -69,6 +69,28 @@ type CheckEmailResult =
 const checkoutProgramSnap = async (input: CheckoutInput): Promise<CheckoutResult> => {
   const normalizedEmail = input.email.trim().toLowerCase();
 
+  // check email registration
+  const isRegistered = await prisma.programRegistration.findUnique({
+    where: {
+      email_programId: {
+        email: normalizedEmail,
+        programId: input.programId
+      }
+    },
+    select: {
+      email: true,
+      programId: true,
+      program: true
+    }
+  });
+
+  if (isRegistered) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Email already registered in ${isRegistered.program.name}`
+    );
+  }
+
   // 1) compute price & member source
   const { amount, source, memberId, programs } = await computePriceProgram({
     programId: input.programId,
@@ -89,7 +111,7 @@ const checkoutProgramSnap = async (input: CheckoutInput): Promise<CheckoutResult
     },
     itemDetails: [
       {
-        id: programs?.id,
+        id: input.programId,
         name: programs?.name,
         price: amount ?? 0,
         quantity: 1

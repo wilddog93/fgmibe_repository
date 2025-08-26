@@ -24,8 +24,8 @@ async function main() {
     create: {
       id: 'program-1',
       name: 'AI & Data Workshop',
-      priceMember: 2000000,
-      priceNonMember: 1000000,
+      priceMember: 200000,
+      priceNonMember: 400000,
       description: 'Learn AI fundamentals with hands-on practice.',
       startDate: new Date('2025-09-01'),
       endDate: new Date('2025-09-03'),
@@ -90,7 +90,6 @@ async function main() {
       phone: member.phone,
       institution: member.institution,
       segment: member.segment,
-      programPackage: 'VIP',
       source: RegistrationSource.MEMBER,
       payments: {
         create: {
@@ -115,7 +114,6 @@ async function main() {
       phone: '08987654321',
       institution: 'Community',
       segment: Segment.STUDENT,
-      programPackage: 'STANDARD',
       source: RegistrationSource.NON_MEMBER,
       payments: {
         create: {
@@ -139,7 +137,6 @@ async function main() {
       name: 'Manual Entry',
       institution: 'University A',
       segment: Segment.PROFESSIONAL,
-      programPackage: 'STANDARD',
       source: RegistrationSource.ADMIN,
       payments: {
         create: {
