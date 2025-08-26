@@ -1,17 +1,41 @@
-
-version: '3.8'
 services:
-  db:
-    image: postgres
-    restart: always
+  postgresdb:
+    image: postgres:15-alpine
     container_name: postgresdb-util-test
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=fgmi_db_test
     ports:
-      - '5432:5432'
-    volumes: 
-      - db:/var/lib/postgresql/data
+      - '55432:5432' # host:container
+    volumes:
+      - db-test-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d apptest || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - node-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-util-test
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - node-network
+
 volumes:
-  db:
-    driver: local
+  db-test-data:
+
+networks:
+  node-network:
+    driver: bridge

@@ -1,81 +1,96 @@
-version: '3.8'
+# docker-compose.yml (prod-first)
 
 services:
   node-app:
     build: .
-    image: node-app
+    image: node-app:prod
     container_name: node-app
-    restart: always
+    init: true
+    working_dir: /usr/src/node-app
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
     expose:
-      - '4000'
+      - '4000' # diakses oleh Nginx di network yang sama
     depends_on:
-      - postgresdb
-      - redis
-    volumes:
-      - .:/usr/src/node-app
-      - /usr/src/node-app/node_modules
+      postgresdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - node-network
 
   postgresdb:
     image: postgres:15
     container_name: postgresdb
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
-    ports:
-      - '5432:5432'
+      - POSTGRES_DB=fgmi_db
+    # ports:
+    #   - "5432:5432"                # hanya jika perlu akses dari host/public
     volumes:
       - dbdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ['CMD-SHELL', 'pg_isready -U postgres || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks:
       - node-network
 
   redis:
     image: redis:7
     container_name: redis
-    restart: always
-    ports:
-      - '6379:6379'
+    restart: unless-stopped
+    # ports:
+    #   - "6379:6379"                # hanya jika perlu akses dari host/public
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     networks:
       - node-network
 
   nginx:
     image: nginx:alpine
     container_name: nginx
-    restart: always
+    restart: unless-stopped
     ports:
       - '80:80'
       - '443:443'
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/certbot:/etc/letsencrypt
       - ./nginx/html:/usr/share/nginx/html
     depends_on:
-      - node-app
+      - node-app # node-app tidak perlu healthcheck HTTP di sini
     networks:
       - node-network
 
   certbot:
     image: certbot/certbot
     container_name: certbot
+    restart: unless-stopped
     volumes:
       - ./nginx/certbot:/etc/letsencrypt
       - ./nginx/html:/usr/share/nginx/html
     entrypoint: >
-      sh -c "trap exit TERM; while :; do certbot renew --webroot -w /usr/share/nginx/html; sleep 12h & wait $${!}; done"
+      sh -c "trap exit TERM; while :; do
+      certbot renew --webroot -w /usr/share/nginx/html --quiet;
+      sleep 12h & wait $${!};
+      done"
     networks:
       - node-network
 
   myip:
     image: jason5ng32/myip
     container_name: myip-checker
-    restart: always
+    restart: unless-stopped
     ports:
       - '8080:8080'
     networks:
@@ -83,7 +98,6 @@ services:
 
 volumes:
   dbdata:
-    driver: local
 
 networks:
   node-network:

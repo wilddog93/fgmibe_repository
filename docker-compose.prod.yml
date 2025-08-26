@@ -1,7 +1,32 @@
-version: '3.8'
-
 services:
   node-app:
-    container_name: node-app-prod
-    command: yarn start
+    build: .
+    image: node-app:dev
+    container_name: node-app-dev
+    working_dir: /usr/src/node-app
+    environment:
+      - NODE_ENV=development
+      # aktifkan polling jika perlu (watcher di VM/remote fs)
+      # - CHOKIDAR_USEPOLLING=1
+      # - WATCHPACK_POLLING=true
+    command: yarn dev -L
+    restart: unless-stopped
+    ports:
+      - '4000:4000'
+    volumes:
+      - .:/usr/src/node-app # tambahkan :Z jika server RHEL/Alma/Rocky (SELinux)
+      - node_modules:/usr/src/node-app/node_modules
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - node-network
 
+volumes:
+  node_modules:
+
+networks:
+  node-network:
+    driver: bridge

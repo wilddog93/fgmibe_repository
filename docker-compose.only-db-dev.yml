@@ -1,16 +1,43 @@
-version: '3.8'
 services:
-  db:
-    image: postgres
-    restart: always
+  postgresdb:
+    image: postgres:15-alpine
     container_name: postgresdb-util-dev
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=fgmi_db_dev
     ports:
-      - '5432:5432'
+      - '5432:5432' # akses dari host untuk tool lokal
     volumes:
-      - db:/var/lib/postgresql/data
+      - db-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d appdev || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - node-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-util-dev
+    restart: unless-stopped
+    # ports:
+    #   - "6379:6379"                  # uncomment jika perlu akses dari host
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - node-network
+
 volumes:
-  db:
-    driver: local
+  db-dev-data:
+
+networks:
+  node-network:
+    driver: bridge

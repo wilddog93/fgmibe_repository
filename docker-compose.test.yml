@@ -1,6 +1,22 @@
-version: '3.8'
-
 services:
   node-app:
+    build: .
+    image: node-app:test
     container_name: node-app-test
+    working_dir: /usr/src/node-app
+    environment:
+      - NODE_ENV=test
+      - CI=true
     command: yarn test
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: 'no'
+    networks:
+      - node-network
+
+networks:
+  node-network:
+    driver: bridge
