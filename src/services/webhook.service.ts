@@ -51,7 +51,6 @@ const handleProgramRegistration = async (
     phone: string | null;
     institution: string | null;
     segment: Segment | null;
-    programPackage: string | null;
     userId: number | null;
     memberId: string | null;
     source: 'MEMBER' | 'NON_MEMBER' | 'ADMIN';
@@ -95,7 +94,6 @@ const handleProgramRegistration = async (
               phone: cache.phone ?? undefined,
               institution: cache.institution ?? undefined,
               segment: cache.segment ?? null,
-              programPackage: cache.programPackage ?? undefined,
               source: cache.source
             }
           });
@@ -147,7 +145,6 @@ const handleProgramRegistration = async (
             phone: cache.phone ?? undefined,
             institution: cache.institution ?? undefined,
             segment: cache.segment ?? null,
-            programPackage: cache.programPackage ?? undefined,
             source: cache.source
           }
         });
