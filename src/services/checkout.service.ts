@@ -60,7 +60,7 @@ const startCheckoutProgram = async (input: CheckoutInput): Promise<CheckoutResul
   const normalizedEmail = input.email.trim().toLowerCase();
 
   // 1) compute price & member source
-  const { amount, source, memberId } = await computePriceProgram({
+  const { amount, source, memberId, programs } = await computePriceProgram({
     programId: input.programId,
     email: normalizedEmail
   });
@@ -72,9 +72,19 @@ const startCheckoutProgram = async (input: CheckoutInput): Promise<CheckoutResul
   const midtransRes = await createTransactionSnap({
     orderId,
     amount: amount ?? 0,
-    customerEmail: normalizedEmail,
-    customerName: input.name,
-    customerPhone: input.phone ?? undefined
+    customerDetails: {
+      email: normalizedEmail,
+      first_name: input.name,
+      phone: input.phone ?? undefined
+    },
+    itemDetails: [
+      {
+        id: programs?.id,
+        name: programs?.name,
+        price: amount ?? 0,
+        quantity: 1
+      }
+    ]
   });
 
   // 4) store to Redis (TTL 2h)
@@ -131,7 +141,7 @@ const checkoutProgram = async (input: CheckoutInput): Promise<CheckoutResult> =>
   }
 
   // 1) compute price & member source
-  const { amount, source, memberId } = await computePriceProgram({
+  const { amount, source, memberId, programs } = await computePriceProgram({
     programId: input.programId,
     email: normalizedEmail
   });
@@ -151,7 +161,7 @@ const checkoutProgram = async (input: CheckoutInput): Promise<CheckoutResult> =>
     itemDetails: [
       {
         id: input.programId,
-        name: input.name,
+        name: programs?.name,
         price: amount ?? 0,
         quantity: 1
       }

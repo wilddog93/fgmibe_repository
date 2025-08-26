@@ -20,6 +20,13 @@ const core = new midtransClient.CoreApi({
   clientKey: CLIENT_KEY
 });
 
+// setup snapApi
+const snap = new midtransClient.Snap({
+  isProduction: false,
+  serverKey: SERVER_KEY,
+  clientKey: CLIENT_KEY
+});
+
 // create charge coreApi
 /**
  *
@@ -67,9 +74,8 @@ export const createTransactionCharge = async (params: {
 export const createTransactionSnap = async (params: {
   orderId: string;
   amount: number;
-  customerEmail: string;
-  customerName: string;
-  customerPhone?: string | null;
+  customerDetails?: any;
+  itemDetails?: any;
 }) => {
   const body = {
     payment_type: 'qris',
@@ -77,27 +83,28 @@ export const createTransactionSnap = async (params: {
       order_id: params.orderId,
       gross_amount: params.amount
     },
-    customer_details: {
-      email: params.customerEmail,
-      name: params.customerName,
-      phone: params.customerPhone
-    }
+    customer_details: params?.customerDetails,
+    item_details: params?.itemDetails
   };
 
-  const res = await fetch(`${BASE_URL}/transactions`, {
-    method: 'POST',
-    headers: {
-      Authorization: authHeaderMidtrans(),
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
+  const result = await snap.createTransaction(body);
+  return result;
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Midtrans charge failed: ${res.status} ${err}`);
-  }
-  return res.json(); // response includes qr_string / actions
+  // const res = await fetch(`${BASE_URL}/transactions`, {
+  //   method: 'POST',
+  //   headers: {
+  //     Authorization: authHeaderMidtrans(),
+  //     'Content-Type': 'application/json'
+  //   },
+  //   body: JSON.stringify(body)
+  // });
+
+  // if (!res.ok) {
+  //   const err = await res.text();
+  //   throw new Error(`Midtrans charge failed: ${res.status} ${err}`);
+  // }
+  // // response includes qr_string / actions
+  // return res.json();
 };
 
 export interface TransactionStatusParams {

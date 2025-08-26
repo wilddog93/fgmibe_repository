@@ -22,6 +22,7 @@ export async function computePriceProgram({ programId, email }: PriceInputProgra
   return {
     amount: member ? programPrice?.priceMember : programPrice?.priceNonMember,
     source: member ? 'MEMBER' : ('NON_MEMBER' as const),
+    programs: programPrice,
     memberId: member?.id ?? null
   };
 }
