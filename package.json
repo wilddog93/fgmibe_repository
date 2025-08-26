@@ -96,6 +96,7 @@
     "helmet": "^6.0.1",
     "http-status": "^1.5.3",
     "joi": "^17.7.0",
+    "midtrans-client": "^1.4.3",
     "moment": "^2.29.4",
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.2",

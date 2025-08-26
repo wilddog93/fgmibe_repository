@@ -12,6 +12,7 @@ import { authLimiter } from './middlewares/rateLimiter';
 import routes from './routes/v1';
 import { errorConverter, errorHandler } from './middlewares/error';
 import ApiError from './utils/ApiError';
+import monitoringController from './controllers/monitoring.controller';
 
 const app = express();
 
@@ -44,6 +45,14 @@ app.use(passport.initialize());
 passport.use('jwt', jwtStrategy);
 passport.use('google', googleStrategy);
 passport.use('github', githubStrategy);
+
+// Routes
+app.get('/', (req, res) => {
+  res.json({ message: '🚀 Hello from Express API Boilerplate!' });
+});
+
+// Health Check
+app.get('/health', monitoringController.getHealth);
 
 // limit repeated failed requests to auth endpoints
 if (config.env === 'production') {

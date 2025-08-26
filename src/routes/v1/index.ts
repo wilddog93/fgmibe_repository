@@ -2,7 +2,10 @@ import express from 'express';
 import authRoute from './auth.route';
 import userRoute from './user.route';
 import docsRoute from './docs.route';
+import programRoute from './program.route';
 import paymentRoute from './payment.route';
+import membershipRoute from './membership.route';
+import memberRoute from './member.route';
 import config from '../../config/config';
 
 const router = express.Router();
@@ -19,6 +22,18 @@ const defaultRoutes = [
   {
     path: '/payment',
     route: paymentRoute
+  },
+  {
+    path: '/programs',
+    route: programRoute
+  },
+  {
+    path: '/memberships',
+    route: membershipRoute
+  },
+  {
+    path: '/members',
+    route: memberRoute
   }
 ];
 

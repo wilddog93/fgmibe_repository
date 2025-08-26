@@ -153,18 +153,17 @@ enum ProgramStatus {
 }
 
 model ProgramRegistration {
-  id             String             @id @default(uuid())
-  programId      String
-  memberId       String? // optional → kalau peserta terdeteksi member
-  userId         Int? // optional → kalau peserta login user
-  email          String
-  name           String
-  phone          String?
-  institution    String?
-  segment        Segment? // kasih nullable → kalau umum boleh kosong
-  programPackage String?
-  registeredAt   DateTime           @default(now())
-  source         RegistrationSource // enum: MEMBER | NON_MEMBER | ADMIN
+  id           String             @id @default(uuid())
+  programId    String
+  memberId     String? // optional → kalau peserta terdeteksi member
+  userId       Int? // optional → kalau peserta login user
+  email        String
+  name         String
+  phone        String?
+  institution  String?
+  segment      Segment? // kasih nullable → kalau umum boleh kosong
+  registeredAt DateTime           @default(now())
+  source       RegistrationSource // enum: MEMBER | NON_MEMBER | ADMIN
 
   // Relations
   user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -172,7 +171,7 @@ model ProgramRegistration {
   program  Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
   payments Payment[]
 
-  @@unique([email, programId])
+  @@unique([email, programId], name: "email_programId")
   @@index([programId])
   @@index([userId])
   @@index([memberId])

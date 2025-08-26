@@ -1,38 +1,37 @@
 import express from 'express';
-import auth from '../../middlewares/auth';
 import validate from '../../middlewares/validate';
-import { userValidation } from '../../validations';
-import { userController } from '../../controllers';
+import { programValidation } from '../../validations';
+import { programController } from '../../controllers';
 
 const router = express.Router();
 
 router
   .route('/')
-  .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
-  .get(validate(userValidation.getUsers), userController.getUsers);
+  .post(validate(programValidation.createProgram), programController.createProgram)
+  .get(validate(programValidation.getPrograms), programController.getPrograms);
 
 router
-  .route('/:userId')
-  .get(validate(userValidation.getUser), userController.getUser)
-  .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
-  .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
+  .route('/:programId')
+  .get(validate(programValidation.getProgram), programController.getProgram)
+  .patch(validate(programValidation.updateProgram), programController.updateProgram)
+  .delete(validate(programValidation.deleteProgram), programController.deleteProgram);
 
 export default router;
 
 /**
  * @swagger
  * tags:
- *   name: Users
- *   description: User management and retrieval
+ *   name: Programs
+ *   description: Program management and retrieval
  */
 
 /**
  * @swagger
- * /users:
+ * /programs:
  *   post:
- *     summary: Create a user
- *     description: Only admins can create other users.
- *     tags: [Users]
+ *     summary: Create a program
+ *     description: Only admins can create other programs.
+ *     tags: [Programs]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -43,36 +42,46 @@ export default router;
  *             type: object
  *             required:
  *               - name
- *               - email
- *               - password
- *               - role
+ *               - startDate
+ *               - endDate
+ *               - priceMember
+ *               - priceNonMember
+ *               - category
  *             properties:
  *               name:
  *                 type: string
- *               email:
+ *               startDate:
  *                 type: string
- *                 format: email
- *                 description: must be unique
- *               password:
+ *                 format: date
+ *                 description: YYYY-MM-DD
+ *               endDate:
  *                 type: string
- *                 format: password
- *                 minLength: 8
- *                 description: At least one number and one letter
- *               role:
- *                  type: string
- *                  enum: [user, admin]
+ *                 format: date
+ *                 description: YYYY-MM-DD
+ *               priceMember:
+ *                 type: number
+ *                 description: Price for members
+ *               priceNonMember:
+ *                 type: number
+ *                 description: Price for non-members
+ *               category:
+ *                 type: string
+ *                 enum: [WEBINAR, BOOTCAMP, TRAINING, OTHER]
+ *                 description: Category
  *             example:
- *               name: fake name
- *               email: fake@example.com
- *               password: password1
- *               role: user
+ *               name: AI & Data Workshop
+ *               startDate: 2025-09-01
+ *               endDate: 2025-09-03
+ *               priceMember: 2000000
+ *               priceNonMember: 1000000
+ *               category: BOOTCAMP
  *     responses:
  *       "201":
  *         description: Created
  *         content:
  *           application/json:
  *             schema:
- *                $ref: '#/components/schemas/User'
+ *                $ref: '#/components/schemas/Program'
  *       "400":
  *         $ref: '#/components/responses/DuplicateEmail'
  *       "401":
@@ -81,9 +90,9 @@ export default router;
  *         $ref: '#/components/responses/Forbidden'
  *
  *   get:
- *     summary: Get all users
- *     description: Only admins can retrieve all users.
- *     tags: [Users]
+ *     summary: Get all programs
+ *     description: Only admins can retrieve all programs.
+ *     tags: [Programs]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -91,12 +100,17 @@ export default router;
  *         name: name
  *         schema:
  *           type: string
- *         description: User name
+ *         description: Program name
  *       - in: query
- *         name: role
+ *         name: category
  *         schema:
  *           type: string
- *         description: User role
+ *         description: Program category
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Program status
  *       - in: query
  *         name: sortBy
  *         schema:
@@ -108,7 +122,7 @@ export default router;
  *           type: integer
  *           minimum: 1
  *         default: 10
- *         description: Maximum number of users
+ *         description: Maximum number of programs
  *       - in: query
  *         name: page
  *         schema:
@@ -127,7 +141,7 @@ export default router;
  *                 results:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/User'
+ *                     $ref: '#/components/schemas/Program'
  *                 page:
  *                   type: integer
  *                   example: 1
@@ -148,11 +162,11 @@ export default router;
 
 /**
  * @swagger
- * /users/{id}:
+ * /programs/{id}:
  *   get:
- *     summary: Get a user
- *     description: Logged in users can fetch only their own user information. Only admins can fetch other users.
- *     tags: [Users]
+ *     summary: Get a program
+ *     description: Logged in users can fetch only their own program information. Only admins can fetch other programs.
+ *     tags: [Programs]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -161,14 +175,14 @@ export default router;
  *         required: true
  *         schema:
  *           type: string
- *         description: User id
+ *         description: Program id
  *     responses:
  *       "200":
  *         description: OK
  *         content:
  *           application/json:
  *             schema:
- *                $ref: '#/components/schemas/User'
+ *                $ref: '#/components/schemas/Program'
  *       "401":
  *         $ref: '#/components/responses/Unauthorized'
  *       "403":
@@ -177,9 +191,9 @@ export default router;
  *         $ref: '#/components/responses/NotFound'
  *
  *   patch:
- *     summary: Update a user
- *     description: Logged in users can only update their own information. Only admins can update other users.
- *     tags: [Users]
+ *     summary: Update a program
+ *     description: Logged in users can only update their own information. Only admins can update other programs.
+ *     tags: [Programs]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -188,7 +202,7 @@ export default router;
  *         required: true
  *         schema:
  *           type: string
- *         description: User id
+ *         description: Program id
  *     requestBody:
  *       required: true
  *       content:
@@ -198,26 +212,38 @@ export default router;
  *             properties:
  *               name:
  *                 type: string
- *               email:
+ *               startDate:
  *                 type: string
- *                 format: email
- *                 description: must be unique
- *               password:
+ *                 format: date
+ *                 description: YYYY-MM-DD
+ *               endDate:
  *                 type: string
- *                 format: password
- *                 minLength: 8
- *                 description: At least one number and one letter
+ *                 format: date
+ *                 description: YYYY-MM-DD
+ *               priceMember:
+ *                 type: number
+ *                 description: Price for members
+ *               priceNonMember:
+ *                 type: number
+ *                 description: Price for non-members
+ *               category:
+ *                 type: string
+ *                 enum: [WEBINAR, BOOTCAMP, TRAINING, OTHER]
+ *                 description: Category
  *             example:
- *               name: fake name
- *               email: fake@example.com
- *               password: password1
+ *               name: AI & Data Workshop
+ *               startDate: 2025-09-01
+ *               endDate: 2025-09-03
+ *               priceMember: 2000000
+ *               priceNonMember: 1000000
+ *               category: BOOTCAMP
  *     responses:
  *       "200":
  *         description: OK
  *         content:
  *           application/json:
  *             schema:
- *                $ref: '#/components/schemas/User'
+ *                $ref: '#/components/schemas/Program'
  *       "400":
  *         $ref: '#/components/responses/DuplicateEmail'
  *       "401":
@@ -228,9 +254,9 @@ export default router;
  *         $ref: '#/components/responses/NotFound'
  *
  *   delete:
- *     summary: Delete a user
- *     description: Logged in users can delete only themselves. Only admins can delete other users.
- *     tags: [Users]
+ *     summary: Delete a program
+ *     description: Logged in users can delete only themselves. Only admins can delete other programs.
+ *     tags: [Programs]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -239,7 +265,7 @@ export default router;
  *         required: true
  *         schema:
  *           type: string
- *         description: User id
+ *         description: Program id
  *     responses:
  *       "200":
  *         description: No content

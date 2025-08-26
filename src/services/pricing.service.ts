@@ -2,24 +2,39 @@
 import { PrismaClient, Segment } from '@prisma/client';
 const prisma = new PrismaClient();
 
-type PriceInput = {
+type PriceInputProgram = {
   programId: string;
   email: string;
-  programPackage?: string | null;
 };
 
-export async function computePrice({ programId, email, programPackage }: PriceInput) {
+type PriceInputMember = {
+  membershipPackageId: string;
+};
+
+export async function computePriceProgram({ programId, email }: PriceInputProgram) {
   // Contoh sederhana: harga member vs non-member
   const normalizedEmail = email.trim().toLowerCase();
   const member = await prisma.member.findUnique({ where: { email: normalizedEmail } });
+  const programPrice = await prisma.program.findUnique({ where: { id: programId ?? '' } });
   // (opsional) baca tabel pricelist/metadata program untuk paket
   // Di sini kita hardcode contoh:
-  const priceNonMember = 60000;
-  const priceMember = 30000;
 
   return {
-    amount: member ? priceMember : priceNonMember,
+    amount: member ? programPrice?.priceMember : programPrice?.priceNonMember,
     source: member ? 'MEMBER' : ('NON_MEMBER' as const),
+    programs: programPrice,
     memberId: member?.id ?? null
+  };
+}
+
+export async function computePriceMember({ membershipPackageId }: PriceInputMember) {
+  const memberPrice = await prisma.membershipPackage.findUnique({
+    where: { id: membershipPackageId ?? '' }
+  });
+
+  return {
+    id: memberPrice?.id,
+    name: memberPrice?.name,
+    amount: memberPrice?.price
   };
 }

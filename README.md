@@ -230,6 +230,12 @@ List of available routes:
 `PATCH /v1/users/:userId` - update user\
 `DELETE /v1/users/:userId` - delete user
 
+**Program routes**:\
+`GET /v1/programs` - get all programs\
+`GET /v1/programs/:programId` - get program\
+`PATCH /v1/programs/:programId` - update program\
+`DELETE /v1/programs/:programId` - delete program
+
 ## Error Handling
 
 The app has a centralized error handling mechanism.

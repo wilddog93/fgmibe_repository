@@ -10,7 +10,7 @@ import {
   ProgramCategory
 } from '@prisma/client';
 
-import bcrypt from 'bcryptjs';
+import { DefaultPassword } from '../src/utils';
 
 const prisma = new PrismaClient();
 
@@ -24,8 +24,8 @@ async function main() {
     create: {
       id: 'program-1',
       name: 'AI & Data Workshop',
-      priceMember: 2000000,
-      priceNonMember: 1000000,
+      priceMember: 200000,
+      priceNonMember: 400000,
       description: 'Learn AI fundamentals with hands-on practice.',
       startDate: new Date('2025-09-01'),
       endDate: new Date('2025-09-03'),
@@ -51,20 +51,24 @@ async function main() {
     update: {},
     create: {
       email: 'ridhoajibx@gmail.com',
-      name: 'Ridho Fauzi',
-      password: await bcrypt.hash('Password123!', 10),
+      name: 'Jumakri Ridho Fauzi',
+      phone: '08123456789',
+      isEmailVerified: true,
+      password: DefaultPassword,
       role: 'ADMIN'
     }
   });
 
   // Create Member
   const member = await prisma.member.upsert({
-    where: { email: 'member@example.com' },
+    where: {
+      email: user.email
+    },
     update: {},
     create: {
-      email: 'member@example.com',
-      name: 'Ridho Fauzi',
-      phone: '08123456789',
+      email: user.email,
+      name: user.name ?? 'Jumakri Ridho Fauzi',
+      phone: user.phone,
       institution: 'Nusantics',
       segment: Segment.PROFESSIONAL,
       interestAreas: ['Geology', 'Others'],
@@ -86,7 +90,6 @@ async function main() {
       phone: member.phone,
       institution: member.institution,
       segment: member.segment,
-      programPackage: 'VIP',
       source: RegistrationSource.MEMBER,
       payments: {
         create: {
@@ -111,7 +114,6 @@ async function main() {
       phone: '08987654321',
       institution: 'Community',
       segment: Segment.STUDENT,
-      programPackage: 'STANDARD',
       source: RegistrationSource.NON_MEMBER,
       payments: {
         create: {
@@ -135,7 +137,6 @@ async function main() {
       name: 'Manual Entry',
       institution: 'University A',
       segment: Segment.PROFESSIONAL,
-      programPackage: 'STANDARD',
       source: RegistrationSource.ADMIN,
       payments: {
         create: {

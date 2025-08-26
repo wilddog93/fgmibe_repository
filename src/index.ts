@@ -5,14 +5,6 @@ import config from './config/config';
 import logger from './config/logger';
 import { initRedis } from './config/redis';
 
-// let server: Server;
-// prisma.$connect().then(() => {
-//   logger.info('Connected to SQL Database');
-//   server = app.listen(config.port, () => {
-//     logger.info(`Listening to port ${config.port}`);
-//   });
-// });
-
 let server: Server;
 
 async function startServer() {

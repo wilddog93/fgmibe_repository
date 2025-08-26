@@ -2,16 +2,40 @@
 import express from 'express';
 import { midtransController } from '../../controllers';
 import validate from '../../middlewares/validate';
-import { checkoutValidation } from '../../validations';
+import { checkoutValidation, webhookValidation, midtransValidation } from '../../validations';
 
 const router = express.Router();
 
-router.post(
-  '/checkout',
-  validate(checkoutValidation.checkoutSchema),
-  midtransController.createCheckout
+router.get(
+  '/status',
+  validate(midtransValidation.statusSchema),
+  midtransController.getPaymentStatus
 );
-router.post('/midtrans/webhook', midtransController.midtransWebhook);
+router.get('/check/email-register-program', midtransController.checkEmailRegistrationProgram);
+router.get('/check/email-register-member', midtransController.checkEmailRegistrationMember);
+
+router.post(
+  '/checkout/program',
+  validate(checkoutValidation.checkoutSchema),
+  midtransController.createCheckoutProgram
+);
+
+router.post(
+  '/checkout/program/snap',
+  validate(checkoutValidation.checkoutSchema),
+  midtransController.createCheckoutProgramSnap
+);
+router.post(
+  '/checkout/member',
+  validate(checkoutValidation.checkoutMemberSchema),
+  midtransController.createCheckoutMember
+);
+router.post(
+  '/midtrans/webhook',
+  validate(webhookValidation.webhookSchema),
+  midtransController.midtransWebhook
+);
+export default router;
 
 /**
  * @swagger
@@ -21,148 +45,238 @@ router.post('/midtrans/webhook', midtransController.midtransWebhook);
  */
 
 /**
- * @Swagger
- * /payment/checkout:
- *   post:
- *     description: Create checkout
- *     tags:
- *       - Payment
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Checkout'
- *     responses:
- *       200:
- *         description: Checkout created
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/CheckoutResponse'
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  * @swagger
- * components:
- *   schemas:
- *     Checkout:
- *       type: object
- *       properties:
- *         programId:
- *           type: string
- *           description: Program ID
- *         email:
- *           type: string
- *           description: Email
- *         name:
- *           type: string
- *           description: Name
- *         phone:
- *           type: string | null
- *           description: Phone
- *         institution:
- *           type: string | null
- *           description: Institution
- *         segment: any | null
- *           description: Segment
- *         programPackage:
- *           type: string | null
- *           description: Program package
- *         method:
- *           type: string
- *           description: Payment method
- *           enum:
- *             - QRIS
- *             - GOPAY
- *         userId:
- *           type: number | null
- *           description: User ID
- *       required:
- *         - programId
- *         - email
- *         - name
- *         - method (QRIS | GOPAY)
- *     CheckoutResponse:
- *       type: object
- *       properties:
- *         orderId:
- *           type: string
- *           description: Order ID
- *         amount:
- *           type: number
- *           description: Amount
- *         currency:
- *           type: string
- *           description: Currency
- *         midtrans:
- *           type: object
- *           description: Midtrans response
- *     Error:
- *       type: object
- *       properties:
- *         status:
- *           type: number
- *           description: HTTP status code
- *         message:
- *           type: string
- *           description: Error message
- *         data:
- *           type: object
- *           description: Additional error data
- *       required:
- *         - status
- *         - message
- *         - data
- * @swagger
- * /payment/midtrans/webhook:
+ * /payment/checkout/program:
  *   post:
- *     description: Midtrans webhook
- *     tags:
- *       - Payment
+ *     summary: Create payment checkout
+ *     description: Midtrans checkout
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - programId
+ *               - email
+ *               - name
+ *               - phone
+ *               - institution
+ *               - segment
+ *               - method
  *             properties:
- *               order_id:
+ *               programId:
  *                 type: string
- *                 description: Order ID
- *               status_code:
+ *                 format: uuid
+ *                 description: Program id
+ *               email:
  *                 type: string
- *                 description: Status code
- *               gross_amount:
+ *                 format: email
+ *                 description: Email
+ *               name:
+ *                 type: string
+ *                 description: Name
+ *               phone:
+ *                 type: string
+ *                 description: Phone
+ *               institution:
+ *                 type: string
+ *                 description: Institution
+ *               segment:
+ *                 type: string
+ *                 enum: [STUDENT, FRESH_GRADUATE, PROFESSIONAL]
+ *                 description: Segment
+ *               method:
+ *                 type: string
+ *                 enum: [QRIS, BANK_TRANSFER, EWALLET]
+ *                 default: QRIS
+ *                 description: Payment method
+ *             example:
+ *               programId: 12345678-1234-1234-1234-123456789012
+ *               email: fake@example.com
+ *               name: fake name
+ *               phone: 08123456789
+ *               institution: NusaTen
+ *               segment: FRESH_GRADUATE
+ *               method: QRIS
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 orderId:
+ *                   type: string
+ *                   description: Order id
+ *                 amount:
+ *                   type: number
+ *                   description: Amount
+ *                 currency:
+ *                   type: string
+ *                   description: Currency
+ *                 midtrans:
+ *                   type: object
+ *                   description: Midtrans response
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ */
+
+/**
+ * @swagger
+ * /payment/checkout/program/snap:
+ *   post:
+ *     summary: Create payment checkout
+ *     description: Midtrans checkout
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - programId
+ *               - email
+ *               - name
+ *               - phone
+ *               - institution
+ *               - segment
+ *               - method
+ *             properties:
+ *               programId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Program id
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email
+ *               name:
+ *                 type: string
+ *                 description: Name
+ *               phone:
+ *                 type: string
+ *                 description: Phone
+ *               institution:
+ *                 type: string
+ *                 description: Institution
+ *               segment:
+ *                 type: string
+ *                 enum: [STUDENT, FRESH_GRADUATE, PROFESSIONAL]
+ *                 description: Segment
+ *               method:
+ *                 type: string
+ *                 enum: [QRIS, BANK_TRANSFER, EWALLET]
+ *                 default: QRIS
+ *                 description: Payment method
+ *             example:
+ *               programId: 12345678-1234-1234-1234-123456789012
+ *               email: fake@example.com
+ *               name: fake name
+ *               phone: 08123456789
+ *               institution: NusaTen
+ *               segment: FRESH_GRADUATE
+ *               method: QRIS
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 orderId:
+ *                   type: string
+ *                   description: Order id
+ *                 amount:
+ *                   type: number
+ *                   description: Amount
+ *                 currency:
+ *                   type: string
+ *                   description: Currency
+ *                 midtrans:
+ *                   type: object
+ *                   description: Midtrans response
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "409":
+ *         $ref: '#/components/responses/Conflict'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
+ *       "503":
+ *         $ref: '#/components/responses/ServiceUnavailable'
+ *
+ */
+
+/**
+ * @swagger
+ * /payment/midtrans/webhook:
+ *   post:
+ *     summary: Midtrans webhook
+ *     description: Midtrans webhook
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - orderId
+ *               - status
+ *               - grossAmount
+ *               - statusCode
+ *               - signatureKey
+ *               - fraudStatus
+ *               - paymentType
+ *               - transactionTime
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 description: Order id
+ *               status:
+ *                 type: string
+ *                 description: Status
+ *               grossAmount:
  *                 type: string
  *                 description: Gross amount
- *               signature_key:
+ *               statusCode:
+ *                 type: string
+ *                 description: Status code
+ *               signatureKey:
  *                 type: string
  *                 description: Signature key
+ *               fraudStatus:
+ *                 type: string
+ *                 description: Fraud status
+ *               paymentType:
+ *                 type: string
+ *                 description: Payment type
+ *               transactionTime:
+ *                 type: string
+ *                 description: Transaction time
  *     responses:
- *       200:
- *         description: Webhook received
+ *       "200":
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -170,53 +284,157 @@ router.post('/midtrans/webhook', midtransController.midtransWebhook);
  *               properties:
  *                 ok:
  *                   type: boolean
- *                   description: Webhook status
+ *                   description: OK
  *                 result:
  *                   type: object
- *                   description: Webhook result
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- * @swagger
- * components:
- *   schemas:
- *     Error:
- *       type: object
- *       properties:
- *         status:
- *           type: number
- *           description: HTTP status code
- *         message:
- *           type: string
- *           description: Error message
- *         data:
- *           type: object
- *           description: Additional error data
- *       required:
- *         - status
- *         - message
- *         - data
+ *                   description: Result
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
  */
 
-export default router;
+/**
+ * @swagger
+ * /payment/status:
+ *   get:
+ *     summary: Get payment status
+ *     description: Midtrans status
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - order_id
+ *             properties:
+ *               order_id:
+ *                 type: string
+ *                 description: Order id
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   description: OK
+ *                 result:
+ *                   type: object
+ *                   description: Result
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ *
+ * @swagger
+ * /payment/check/email-register-program:
+ *   get:
+ *     summary: Check email registration from User/Member/Program Registration email
+ *     description: Check email registration from User/Member/Program Registration email
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: Email
+ *       - in: query
+ *         name: programId
+ *         schema:
+ *           type: string
+ *         description: Program id
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   description: OK
+ *                 result:
+ *                   type: object
+ *                   description: Result
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "409":
+ *         $ref: '#/components/responses/Conflict'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
+ *       "503":
+ *         $ref: '#/components/responses/ServiceUnavailable'
+ */
+
+/**
+ * @swagger
+ * /payment/check/email-register-member:
+ *   get:
+ *     summary: Check email registration from User/Member/Program Registration email
+ *     description: Check email registration from User/Member/Program Registration email
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: Email
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   description: OK
+ *                 result:
+ *                   type: object
+ *                   description: Result
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "409":
+ *         $ref: '#/components/responses/Conflict'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
+ *       "503":
+ *         $ref: '#/components/responses/ServiceUnavailable'
+ */
