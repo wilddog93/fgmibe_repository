@@ -68,6 +68,16 @@ services:
     networks:
       - node-network
 
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./nginx/certbot:/etc/letsencrypt
+      - ./nginx/html:/usr/share/nginx/html
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - node-network
+
 volumes:
   dbdata:
     driver: local
