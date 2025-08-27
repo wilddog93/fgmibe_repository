@@ -16,8 +16,8 @@ services:
       - node-network
 
   postgresdb:
-    image: postgres:15
-    container_name: postgresdb
+    image: postgres
+    container_name: postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
