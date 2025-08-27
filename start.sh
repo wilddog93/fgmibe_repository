@@ -1,7 +1,4 @@
 #!/bin/sh
-
-# start.sh untuk runtime node container
-# fallback server.js -> index.js
 set -e
 
 if [ -f "./build/server.js" ]; then
