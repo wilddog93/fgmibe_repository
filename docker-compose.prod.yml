@@ -12,7 +12,7 @@ services:
     env_file: .env
     restart: unless-stopped
     ports:
-      - '4000:4000' # supaya bisa curl dari host
+      - '4000:4000'
     depends_on:
       postgresdb:
         condition: service_healthy

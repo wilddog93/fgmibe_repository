@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2016",
     "outDir": "./build",
-    "rootDir": "src",
+    "rootDir": ".",
     "module": "commonjs",
     "typeRoots": [
       "./src/types",
@@ -20,7 +20,8 @@
     "strictNullChecks": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"
@@ -28,5 +29,5 @@
   "ts-node": {
     "transpileOnly": true,
     "files": true
-  },
+  }
 }
