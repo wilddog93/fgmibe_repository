@@ -10,8 +10,6 @@ services:
       - postgresdb
       - redis
       - myip
-      - nginx
-      - certbot
     volumes:
       - .:/usr/src/node-app
     networks:
@@ -49,32 +47,6 @@ services:
     restart: unless-stopped
     ports:
       - '8080:8080'
-    networks:
-      - node-network
-
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '443:443'
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/certbot:/etc/letsencrypt
-      - ./nginx/html:/usr/share/nginx/html
-    depends_on:
-      - node-app
-    networks:
-      - node-network
-
-  certbot:
-    image: certbot/certbot
-    restart: unless-stopped
-    volumes:
-      - ./nginx/certbot:/etc/letsencrypt
-      - ./nginx/html:/usr/share/nginx/html
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     networks:
       - node-network
 
