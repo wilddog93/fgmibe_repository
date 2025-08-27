@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2016",
     "outDir": "./build",
-    "rootDir": "src",
+    "rootDir": ".",
     "module": "commonjs",
     "typeRoots": [
       "./src/types",
@@ -20,7 +20,8 @@
     "strictNullChecks": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "package.json"
   ],
   "exclude": [
     "node_modules"
