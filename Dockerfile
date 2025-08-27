@@ -1,29 +1,35 @@
 # syntax=docker/dockerfile:1.6
 
 ########################################
-# 1) Dependencies (untuk build)
+# 1) Dependencies
 ########################################
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
+
 COPY package.json yarn.lock ./
 COPY prisma ./prisma
+
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
     yarn install --frozen-lockfile
 RUN npx prisma generate || true
 
 ########################################
-# 2) Build (TS -> build/)
+# 2) Build stage (TS -> build/)
 ########################################
 FROM node:20-bookworm-slim AS build
 WORKDIR /app
 ENV NODE_ENV=production
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
 RUN yarn build
-RUN test -d build || (echo "ERROR: Folder 'build' tidak ditemukan." && ls -la && exit 1)
+
+# pastikan folder build ada
+RUN test -d build || (echo "ERROR: Folder 'build' tidak ditemukan. Cek tsconfig & script build." && ls -la && exit 1)
 
 ########################################
-# 3) Runtime (minimal, non-root)
+# 3) Runtime stage (minimal, non-root)
 ########################################
 FROM node:20-bookworm-slim AS runner
 WORKDIR /usr/src/node-app
@@ -31,24 +37,23 @@ ENV NODE_ENV=production
 ENV PORT=4000
 ENV BUILD_DIR=build
 
-# Copy package & prisma dan install production deps
+# Copy package.json & prisma
 COPY --chown=node:node package.json yarn.lock ./
 COPY --chown=node:node prisma ./prisma
+
+# Install production deps
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
     yarn install --frozen-lockfile --production=true \
  && npx prisma generate || true
 
 # Copy hasil build dari stage build
-COPY --chown=node:node --from=build /app/${BUILD_DIR} ./${BUILD_DIR}
+COPY --chown=node:node --from=build /app/build ./build
 
-# Copy start.sh sebagai root dulu, lalu chmod
+# Copy start.sh sebagai root, chmod, baru switch ke node
 COPY start.sh ./
 RUN chmod +x start.sh
-
-# Switch ke user non-root
 USER node
 
 EXPOSE 4000
 
-# Jalankan start.sh (handle server.js atau index.js)
 CMD ["./start.sh"]

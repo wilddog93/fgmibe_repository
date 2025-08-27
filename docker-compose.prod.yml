@@ -9,12 +9,10 @@ services:
     image: node-app:prod
     container_name: node-app-prod
     working_dir: /usr/src/node-app
-    env_file:
-      - .env # <-- pakai file .env
-    command: ['./start.sh'] # atau node build/index.js jika mau
+    env_file: .env
     restart: unless-stopped
-    expose:
-      - '4000'
+    ports:
+      - '4000:4000' # supaya bisa curl dari host
     depends_on:
       postgresdb:
         condition: service_healthy
@@ -25,6 +23,36 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks: [node-network]
+
+  postgresdb:
+    image: postgres:15-alpine
+    container_name: postgresdb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: fgmi_db
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d fgmi_db || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [node-network]
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     networks: [node-network]
 
   nginx:
@@ -54,6 +82,9 @@ services:
       sleep 12h & wait $${!};
       done"
     networks: [node-network]
+
+volumes:
+  dbdata:
 
 networks:
   node-network:
