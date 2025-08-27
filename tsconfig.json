@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2016",
     "outDir": "./build",
+    "rootDir": "src",
     "module": "commonjs",
     "typeRoots": [
       "./src/types",
