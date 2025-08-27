@@ -2,13 +2,12 @@
   "apps": [
     {
       "name": "node-app",
-      "script": "build/src/index.js",
+      "script": "./build/src/index.js",
       "instances": 1,
-      "autorestart": true,
-      "watch": false,
-      "time": true,
+      "exec_mode": "fork",
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "PORT": 4000
       }
     }
   ]
