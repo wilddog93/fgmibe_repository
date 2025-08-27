@@ -1,58 +1,54 @@
-# docker-compose.yml (prod-first)
+version: '3.8'
 
 services:
   node-app:
     build: .
-    image: node-app:prod
-    container_name: node-app
-    init: true
-    working_dir: /usr/src/node-app
-    env_file:
-      - .env # <-- pakai file .env
-    restart: unless-stopped
-    expose:
-      - '4000' # diakses oleh Nginx di network yang sama
+    image: node-app
+    ports:
+      - '4000:4000'
     depends_on:
-      postgresdb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgresdb
+      - redis
+      - myip
+      - nginx
+      - certbot
+    volumes:
+      - .:/usr/src/node-app
     networks:
       - node-network
 
   postgresdb:
-    image: postgres:15
-    container_name: postgresdb
+    image: postgres
     restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=fgmi_db
-    # ports:
-    #   - "5432:5432"                # hanya jika perlu akses dari host/public
+    ports:
+      - '5432:5432'
     volumes:
       - dbdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres || exit 1']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     networks:
       - node-network
 
   redis:
-    image: redis:7
+    image: redis
     container_name: redis
     restart: unless-stopped
-    # ports:
-    #   - "6379:6379"                # hanya jika perlu akses dari host/public
     healthcheck:
       test: ['CMD-SHELL', 'redis-cli ping | grep PONG || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 5s
+    networks:
+      - node-network
+
+  myip:
+    image: jason5ng32/myip
+    container_name: myip-checker
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
     networks:
       - node-network
 
@@ -68,36 +64,13 @@ services:
       - ./nginx/certbot:/etc/letsencrypt
       - ./nginx/html:/usr/share/nginx/html
     depends_on:
-      - node-app # node-app tidak perlu healthcheck HTTP di sini
-    networks:
-      - node-network
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    restart: unless-stopped
-    volumes:
-      - ./nginx/certbot:/etc/letsencrypt
-      - ./nginx/html:/usr/share/nginx/html
-    entrypoint: >
-      sh -c "trap exit TERM; while :; do
-      certbot renew --webroot -w /usr/share/nginx/html --quiet;
-      sleep 12h & wait $${!};
-      done"
-    networks:
-      - node-network
-
-  myip:
-    image: jason5ng32/myip
-    container_name: myip-checker
-    restart: unless-stopped
-    ports:
-      - '8080:8080'
+      - node-app
     networks:
       - node-network
 
 volumes:
   dbdata:
+    driver: local
 
 networks:
   node-network:
