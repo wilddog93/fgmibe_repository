@@ -1,46 +1,25 @@
-# syntax=docker/dockerfile:1.6
+# Gunakan Node LTS slim
+FROM node:20-bookworm-slim
 
-########################################
-# 1) Dependencies (build stage)
-########################################
-FROM node:20-bookworm-slim AS deps
-WORKDIR /app
-COPY package.json yarn.lock ./
-COPY prisma ./prisma
-RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    yarn install --frozen-lockfile
-RUN npx prisma generate || true
-
-########################################
-# 2) Build (TS -> build/)
-########################################
-FROM node:20-bookworm-slim AS build
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN yarn build
-RUN test -d build || (echo "ERROR: Folder 'build' tidak ditemukan. Cek script build & tsconfig outDir." && ls -la && exit 1)
-
-########################################
-# 3) Runner (minimal, non-root)
-########################################
-FROM node:20-bookworm-slim AS runner
+# Working directory di container
 WORKDIR /usr/src/node-app
+
+# Copy package.json + yarn.lock dulu
+COPY package.json yarn.lock ./
+
+# Install semua deps termasuk devDependencies (ts-node)
+RUN yarn install --frozen-lockfile
+
+# Copy seluruh source + Prisma
+COPY prisma ./prisma
+COPY src ./src
+
+# Environment
 ENV NODE_ENV=production
 ENV PORT=4000
-ENV BUILD_DIR=build
-USER node
 
-COPY --chown=node:node package.json yarn.lock ./
-COPY --chown=node:node prisma ./prisma
-RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    yarn install --frozen-lockfile --production=true \
- && npx prisma generate || true
-
-COPY --chown=node:node --from=build /app/$BUILD_DIR ./$BUILD_DIR
-COPY --chown=node:node start.sh ./
-RUN chmod +x start.sh
-
+# Expose port
 EXPOSE 4000
-CMD ["./start.sh"]
+
+# Jalankan server langsung dari TS
+CMD ["ts-node", "src/index.ts"]
