@@ -7,7 +7,7 @@ services:
     ports:
       - '4000:4000'
     depends_on:
-      - postgres
+      - postgresdb
       - redis
       - myip
     volumes:
@@ -16,8 +16,8 @@ services:
       - node-network
 
   postgresdb:
-    image: postgres
-    container_name: postgres
+    image: postgres:15
+    container_name: postgresdb
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
