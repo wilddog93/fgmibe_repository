@@ -30,17 +30,25 @@ WORKDIR /usr/src/node-app
 ENV NODE_ENV=production
 ENV PORT=4000
 ENV BUILD_DIR=build
-USER node
 
+# Copy package & prisma dan install production deps
 COPY --chown=node:node package.json yarn.lock ./
 COPY --chown=node:node prisma ./prisma
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
     yarn install --frozen-lockfile --production=true \
  && npx prisma generate || true
 
+# Copy hasil build dari stage build
 COPY --chown=node:node --from=build /app/${BUILD_DIR} ./${BUILD_DIR}
+
+# Copy start.sh sebagai root dulu, lalu chmod
 COPY start.sh ./
 RUN chmod +x start.sh
 
+# Switch ke user non-root
+USER node
+
 EXPOSE 4000
+
+# Jalankan start.sh (handle server.js atau index.js)
 CMD ["./start.sh"]
