@@ -7,8 +7,8 @@ services:
     container_name: node-app
     init: true
     working_dir: /usr/src/node-app
-    environment:
-      - NODE_ENV=production
+    env_file:
+      - .env # <-- pakai file .env
     restart: unless-stopped
     expose:
       - '4000' # diakses oleh Nginx di network yang sama

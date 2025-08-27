@@ -9,12 +9,9 @@ services:
     image: node-app:prod
     container_name: node-app-prod
     working_dir: /usr/src/node-app
-    environment:
-      - NODE_ENV=production
-      - PORT=4000
-      # - DATABASE_URL=${DATABASE_URL}
-      # - REDIS_URL=${REDIS_URL}
-    command: ['node', 'build/index.js']
+    env_file:
+      - .env # <-- pakai file .env
+    command: ['./start.sh'] # atau node build/index.js jika mau
     restart: unless-stopped
     expose:
       - '4000'
