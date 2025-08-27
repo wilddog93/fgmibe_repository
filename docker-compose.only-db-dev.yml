@@ -1,3 +1,5 @@
+# docker-compose.only-db-dev.yml
+
 services:
   postgresdb:
     image: postgres:15-alpine
