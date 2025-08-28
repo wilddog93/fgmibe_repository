@@ -4,6 +4,7 @@ import authValidation from '../../validations/auth.validation';
 import { authController } from '../../controllers';
 import auth from '../../middlewares/auth';
 import passport from 'passport';
+import config from '../../config/config';
 
 const router = express.Router();
 
@@ -35,7 +36,12 @@ router.get('/google', authController.googleLogin);
 // Handle Google Callback
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login', session: false }),
+  passport.authenticate('google', {
+    failureRedirect: config.frontendUrl || 'http://localhost:3000/login', // Redirect to login page if failed
+    session: false,
+    successRedirect: config.frontendUrl || 'http://localhost:3000', // Redirect to home page FE after successful login
+    userProperty: 'user' // Pass user property to the request object
+  }),
   authController.googleCallback
 );
 
@@ -45,7 +51,12 @@ router.get('/github', authController.githubLogin);
 // Handle Github Callback
 router.get(
   '/github/callback',
-  passport.authenticate('github', { failureRedirect: '/login', session: false }),
+  passport.authenticate('github', {
+    failureRedirect: config.frontendUrl || 'http://localhost:3000/login', // Redirect to login page if failed
+    session: false,
+    successRedirect: config.frontendUrl || 'http://localhost:3000', // Redirect to home page FE after successful login
+    userProperty: 'user' // Pass user property to the request object
+  }),
   authController.githubCallback
 );
 

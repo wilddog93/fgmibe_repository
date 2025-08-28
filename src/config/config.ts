@@ -77,5 +77,6 @@ export default {
     baseUrl: envVars.MIDTRANS_BASE_URL,
     serverKey: envVars.MIDTRANS_SERVER_KEY,
     clientKey: envVars.MIDTRANS_CLIENT_KEY
-  }
+  },
+  frontendUrl: envVars.FRONTEND_URL
 };
