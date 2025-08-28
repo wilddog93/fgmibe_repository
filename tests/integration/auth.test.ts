@@ -644,6 +644,98 @@ describe('Auth routes', () => {
     //     .expect(httpStatus.UNAUTHORIZED);
     // });
   });
+
+  describe('GET /v1/auth/google', () => {
+    let userOneAccessToken: string;
+    let invalidToken: string;
+
+    beforeEach(async () => {
+      await insertUsers([userOne]);
+      const dbUserOne = (await prisma.user.findUnique({ where: { email: userOne.email } })) as User;
+      userOneAccessToken = tokenService.generateToken(
+        dbUserOne.id,
+        moment().add(config.jwt.accessExpirationMinutes, 'minutes'),
+        TokenType.ACCESS
+      );
+      invalidToken = tokenService.generateToken(
+        dbUserOne.id,
+        moment().add(config.jwt.accessExpirationMinutes, 'minutes'),
+        TokenType.ACCESS,
+        'invalidSecret'
+      );
+    });
+
+    test('should return 200 and redirect to google oauth', async () => {
+      await request(app)
+        .get('/v1/auth/google')
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .expect(httpStatus.FOUND);
+    });
+
+    test('should return 401 if no token is provided', async () => {
+      await request(app).get('/v1/auth/google').expect(httpStatus.UNAUTHORIZED);
+    });
+
+    test('should return 401 if token is invalid', async () => {
+      await request(app)
+        .get('/v1/auth/google')
+        .set('Authorization', `Bearer ${invalidToken}`)
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    test('should return 401 if user is not found', async () => {
+      await request(app)
+        .get('/v1/auth/google')
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+  });
+
+  describe('GET /v1/auth/github', () => {
+    let userOneAccessToken: string;
+    let invalidToken: string;
+
+    beforeEach(async () => {
+      await insertUsers([userOne]);
+      const dbUserOne = (await prisma.user.findUnique({ where: { email: userOne.email } })) as User;
+      userOneAccessToken = tokenService.generateToken(
+        dbUserOne.id,
+        moment().add(config.jwt.accessExpirationMinutes, 'minutes'),
+        TokenType.ACCESS
+      );
+      invalidToken = tokenService.generateToken(
+        dbUserOne.id,
+        moment().add(config.jwt.accessExpirationMinutes, 'minutes'),
+        TokenType.ACCESS,
+        'invalidSecret'
+      );
+    });
+
+    test('should return 200 and redirect to github oauth', async () => {
+      await request(app)
+        .get('/v1/auth/github')
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .expect(httpStatus.FOUND);
+    });
+
+    test('should return 401 if no token is provided', async () => {
+      await request(app).get('/v1/auth/github').expect(httpStatus.UNAUTHORIZED);
+    });
+
+    test('should return 401 if token is invalid', async () => {
+      await request(app)
+        .get('/v1/auth/github')
+        .set('Authorization', `Bearer ${invalidToken}`)
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    test('should return 401 if user is not found', async () => {
+      await request(app)
+        .get('/v1/auth/github')
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+  });
 });
 
 describe('Auth middleware', () => {
@@ -823,6 +915,25 @@ describe('Auth middleware', () => {
   });
 
   test('should call next with no errors if user has required rights', async () => {
+    await insertUsers([admin]);
+    const dbAdmin = (await prisma.user.findUnique({ where: { email: admin.email } })) as User;
+    const adminAccessToken = tokenService.generateToken(
+      dbAdmin.id,
+      moment().add(config.jwt.accessExpirationMinutes, 'minutes'),
+      TokenType.ACCESS
+    );
+    const req = httpMocks.createRequest({
+      headers: { Authorization: `Bearer ${adminAccessToken}` },
+      params: { userId: dbAdmin.id }
+    });
+    const next = jest.fn();
+
+    await auth(...(roleRights.get(Role.ADMIN) as string[]))(req, httpMocks.createResponse(), next);
+
+    expect(next).toHaveBeenCalledWith();
+  });
+
+  test('should call next with no errors if user has required rights and userId is in params', async () => {
     await insertUsers([admin]);
     const dbAdmin = (await prisma.user.findUnique({ where: { email: admin.email } })) as User;
     const adminAccessToken = tokenService.generateToken(
