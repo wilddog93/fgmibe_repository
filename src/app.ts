@@ -48,7 +48,7 @@ passport.use('github', githubStrategy);
 
 // Routes
 app.get('/', (req, res) => {
-  res.json({ message: '🚀 Hello from Express API Boilerplate!' });
+  res.json({ message: '🚀 Hello from Express API Boilerplate Development!' });
 });
 
 // Health Check
