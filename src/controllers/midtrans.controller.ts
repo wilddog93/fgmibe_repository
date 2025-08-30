@@ -23,6 +23,12 @@ const createCheckoutMember = catchAsync(async (req: Request, res: Response) => {
   res.status(httpStatus.OK).send(data);
 });
 
+const createCheckoutMemberSnap = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+  const data = await checkoutService.checkoutRegisterMemberSnap(payload);
+  res.status(httpStatus.OK).send(data);
+});
+
 const midtransWebhook = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const result = await webhookService.handleMidtransWebhook(payload);
@@ -49,11 +55,12 @@ const getPaymentStatus = catchAsync(async (req: Request, res: Response) => {
 });
 
 export default {
-  createCheckoutProgram,
-  createCheckoutProgramSnap,
   midtransWebhook,
   getPaymentStatus,
-  checkEmailRegistrationProgram,
+  createCheckoutMember,
+  createCheckoutProgram,
+  createCheckoutMemberSnap,
+  createCheckoutProgramSnap,
   checkEmailRegistrationMember,
-  createCheckoutMember
+  checkEmailRegistrationProgram
 };

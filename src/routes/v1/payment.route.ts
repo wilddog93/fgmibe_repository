@@ -19,17 +19,24 @@ router.post(
   validate(checkoutValidation.checkoutSchema),
   midtransController.createCheckoutProgram
 );
-
 router.post(
   '/checkout/program/snap',
   validate(checkoutValidation.checkoutSchema),
   midtransController.createCheckoutProgramSnap
 );
+
 router.post(
   '/checkout/member',
   validate(checkoutValidation.checkoutMemberSchema),
   midtransController.createCheckoutMember
 );
+
+router.post(
+  '/checkout/member/snap',
+  validate(checkoutValidation.checkoutMemberSchema),
+  midtransController.createCheckoutMemberSnap
+);
+
 router.post(
   '/midtrans/webhook',
   validate(webhookValidation.webhookSchema),

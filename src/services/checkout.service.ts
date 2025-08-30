@@ -43,8 +43,9 @@ type CheckoutMemberInput = {
   phone?: string | null;
   institution?: string | null;
   segment?: Segment | null; // Segment | null
+  studentId?: string | null;
+  degree?: string | null;
   interestAreas?: string[];
-  programPackage?: string | null;
   joinDate?: Date | string;
   status?: MemberStatus;
   method?: PaymentMethod; // default QRIS
@@ -288,6 +289,8 @@ const checkoutRegisterMember = async (input: CheckoutMemberInput): Promise<Check
     phone: input.phone ?? null,
     institution: input.institution ?? null,
     segment: input.segment ?? null,
+    studentId: input.studentId ?? null,
+    degree: input.degree ?? null,
     interestAreas: input.interestAreas ?? [],
     userId: input.userId ?? null,
     amount,
@@ -359,6 +362,8 @@ const checkoutRegisterMemberSnap = async (input: CheckoutMemberInput): Promise<C
     phone: input.phone ?? null,
     institution: input.institution ?? null,
     segment: input.segment ?? null,
+    studentId: input.studentId ?? null,
+    degree: input.degree ?? null,
     interestAreas: input.interestAreas ?? [],
     userId: input.userId ?? null,
     amount,
@@ -428,22 +433,20 @@ export const checkEmailRegistrationProgram = async (
 export const checkEmailRegistrationMember = async (
   filter: QueryFilter
 ): Promise<CheckEmailResult> => {
-  const users = await prisma.member.findMany({
+  // get user by email where membershipPackage is null / undefined
+  const users = await prisma.user.findMany({
     where: {
       email: {
-        contains: filter?.email?.toLowerCase(),
+        contains: filter.email?.toLowerCase(),
         mode: 'insensitive'
+      },
+      member: {
+        is: null
       }
-    },
-    select: {
-      email: true,
-      name: true,
-      phone: true,
-      institution: true
     }
   });
   if (users.length) {
-    return { type: 'member', result: users };
+    return { type: 'user', result: users };
   }
   return { type: 'unregistered', result: [] };
 };

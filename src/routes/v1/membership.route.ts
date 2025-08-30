@@ -40,6 +40,26 @@ export default router;
  *   description: Membership management and retrieval
  */
 
+// TODO: Response
+// {
+//   "data": [
+//     {
+//       "id": "member-basic",
+//       "name": "Basic",
+//       "description": "Basic",
+//       "price": 1000000,
+//       "createdAt": "2025-08-26T13:44:46.908Z",
+//       "updatedAt": "2025-08-26T13:44:46.908Z"
+//     }
+//   ],
+//   "pagination": {
+//     "page": 1,
+//     "limit": 10,
+//     "totalItems": 1,
+//     "totalPages": 1
+//   }
+// }
+
 /**
  * @swagger
  * /memberships:
@@ -88,26 +108,50 @@ export default router;
  *             schema:
  *               type: object
  *               properties:
- *                 results:
+ *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Membership'
- *                 page:
- *                   type: integer
- *                   example: 1
- *                 limit:
- *                   type: integer
- *                   example: 10
- *                 totalItems:
- *                   type: integer
- *                   example: 1
- *                 totalPages:
- *                   type: integer
- *                   example: 1
+ *                     id:
+ *                       type: string
+ *                       example: member-basic
+ *                     name:
+ *                       type: string
+ *                       example: Basic
+ *                     description:
+ *                       type: string
+ *                       example: Basic
+ *                     price:
+ *                       type: number
+ *                       example: 1000000
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-08-26T13:44:46.908Z
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2025-08-26T13:44:46.908Z
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 10
+ *                     totalItems:
+ *                       type: integer
+ *                       example: 1
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 1
  *       "401":
  *         $ref: '#/components/responses/Unauthorized'
- *       "403":
- *         $ref: '#/components/responses/Forbidden'
+ *       "404":
+ *         $ref: '#/components/responses/NotFound'
+ *       "500":
+ *         $ref: '#/components/responses/InternalServerError'
  */
 
 /**

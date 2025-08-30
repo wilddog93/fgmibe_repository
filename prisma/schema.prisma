@@ -88,6 +88,8 @@ model Member {
   segment           Segment
   institution       String?
   interestAreas     String[] // postgres text[]
+  studentId         String?           @unique
+  degree            String?
   membershipPackage MembershipPackage @relation(fields: [membershipPackageId], references: [id])
   joinDate          DateTime          @default(now())
   status            MemberStatus      @default(ACTIVE)

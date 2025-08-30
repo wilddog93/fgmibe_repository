@@ -15,7 +15,10 @@ const getMembershipPackages = {
     description: Joi.string(),
     price: Joi.number(),
     createdAt: Joi.date(),
-    updatedAt: Joi.date()
+    updatedAt: Joi.date(),
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer()
   })
 };
 

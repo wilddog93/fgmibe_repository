@@ -21,6 +21,8 @@ const checkoutMemberSchema = Joi.object({
   phone: Joi.string().allow('', null),
   institution: Joi.string().allow('', null),
   segment: Joi.string().valid('STUDENT', 'FRESH_GRADUATE', 'PROFESSIONAL').allow(null),
+  studentId: Joi.string().allow('', null),
+  degree: Joi.string().allow('', null),
   interestAreas: Joi.array().items(Joi.string()),
   joinDate: Joi.date().allow(null),
   status: Joi.string().valid('ACTIVE', 'INACTIVE').default('ACTIVE'),
