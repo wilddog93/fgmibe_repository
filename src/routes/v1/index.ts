@@ -3,6 +3,7 @@ import authRoute from './auth.route';
 import userRoute from './user.route';
 import docsRoute from './docs.route';
 import programRoute from './program.route';
+import programRegistrationRoute from './program-registration.route';
 import paymentRoute from './payment.route';
 import membershipRoute from './membership.route';
 import memberRoute from './member.route';
@@ -26,6 +27,10 @@ const defaultRoutes = [
   {
     path: '/programs',
     route: programRoute
+  },
+  {
+    path: '/program-registrations',
+    route: programRegistrationRoute
   },
   {
     path: '/memberships',
