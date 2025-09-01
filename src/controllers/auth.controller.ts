@@ -108,7 +108,15 @@ const githubLogin = catchAsync(async (req, res) => {
 const githubCallback = catchAsync(async (req, res) => {
   const user = req.user as any;
   const tokens = await tokenService.generateAuthTokens({ id: user.id });
-  res.send({ user, tokens });
+  res.cookie('refreshToken', tokens.refresh?.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+
+  // Redirect ke FE, kasih access token via query
+  res.redirect(`${config.frontendUrl}/callback?accessToken=${tokens.access.token}`);
 });
 
 export default {
