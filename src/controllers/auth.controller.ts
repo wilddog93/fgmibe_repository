@@ -4,6 +4,7 @@ import { authService, userService, tokenService, emailService } from '../service
 import exclude from '../utils/exclude';
 import { User } from '@prisma/client';
 import passport from 'passport';
+import config from '../config/config';
 
 const authMe = catchAsync(async (req, res) => {
   const { id } = req.user as User;
@@ -27,7 +28,12 @@ const register = catchAsync(async (req, res) => {
   const user = await userService.createUser(email, password, name);
   const userWithoutPassword = exclude(user, ['password', 'createdAt', 'updatedAt']);
   const tokens = await tokenService.generateAuthTokens(user);
-  res.status(httpStatus.CREATED).send({ user: userWithoutPassword, tokens });
+  res.status(httpStatus.CREATED).send({
+    data: {
+      user: userWithoutPassword,
+      tokens
+    }
+  });
 });
 
 const login = catchAsync(async (req, res) => {
@@ -44,6 +50,11 @@ const logout = catchAsync(async (req, res) => {
 
 const refreshTokens = catchAsync(async (req, res) => {
   const tokens = await authService.refreshAuth(req.body.refreshToken);
+  res.cookie('refreshToken', tokens.refresh?.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
   res.send({ data: { tokens } });
 });
 
@@ -77,7 +88,17 @@ const googleLogin = catchAsync(async (req, res) => {
 const googleCallback = catchAsync(async (req, res) => {
   const user = req.user as any;
   const tokens = await tokenService.generateAuthTokens({ id: user.id });
-  res.send({ user, tokens });
+  // Set refresh token in httpOnly cookie
+  res.cookie('refreshToken', tokens.refresh?.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+
+  // Redirect ke FE, kasih access token via query
+  res.redirect(`${config.frontendUrl}/callback?accessToken=${tokens.access.token}`);
+  // res.send({ user, tokens });
 });
 
 const githubLogin = catchAsync(async (req, res) => {

@@ -37,9 +37,8 @@ router.get('/google', authController.googleLogin);
 router.get(
   '/google/callback',
   passport.authenticate('google', {
-    failureRedirect: config.frontendUrl || 'http://localhost:3000/login', // Redirect to login page if failed
+    failureRedirect: `${config.frontendUrl}/login` || 'http://localhost:3000/login', // Redirect to login page if failed
     session: false,
-    successRedirect: config.frontendUrl || 'http://localhost:3000', // Redirect to home page FE after successful login
     userProperty: 'user' // Pass user property to the request object
   }),
   authController.googleCallback
@@ -52,9 +51,8 @@ router.get('/github', authController.githubLogin);
 router.get(
   '/github/callback',
   passport.authenticate('github', {
-    failureRedirect: config.frontendUrl || 'http://localhost:3000/login', // Redirect to login page if failed
+    failureRedirect: `${config.frontendUrl}/login` || 'http://localhost:3000/login', // Redirect to login page if failed
     session: false,
-    successRedirect: config.frontendUrl || 'http://localhost:3000', // Redirect to home page FE after successful login
     userProperty: 'user' // Pass user property to the request object
   }),
   authController.githubCallback
