@@ -78,5 +78,10 @@ export default {
     serverKey: envVars.MIDTRANS_SERVER_KEY,
     clientKey: envVars.MIDTRANS_CLIENT_KEY
   },
+  ipaymu: {
+    apiUrl: envVars.IPAYMU_BASE_URL,
+    apiKey: envVars.IPAYMU_API_KEY,
+    va: envVars.IPAYMU_VA
+  },
   frontendUrl: envVars.FRONTEND_URL
 };

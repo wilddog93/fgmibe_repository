@@ -1,6 +1,6 @@
 // src/routes/payment.routes.ts
 import express from 'express';
-import { midtransController } from '../../controllers';
+import { midtransController, ipaymuController } from '../../controllers';
 import validate from '../../middlewares/validate';
 import { checkoutValidation, webhookValidation, midtransValidation } from '../../validations';
 
@@ -37,10 +37,20 @@ router.post(
   midtransController.createCheckoutMemberSnap
 );
 
+// ipaymu
+router.post('/checkout/program/ipaymu', ipaymuController.createCheckoutProgramIpaymu);
+router.post('/checkout/member/ipaymu', ipaymuController.createCheckoutMemberIpaymu);
+
 router.post(
   '/midtrans/webhook',
   validate(webhookValidation.webhookSchema),
   midtransController.midtransWebhook
+);
+
+router.post(
+  '/ipaymu/webhook',
+  validate(webhookValidation.ipaymuWebhookSchema),
+  ipaymuController.ipaymuWebhook
 );
 export default router;
 

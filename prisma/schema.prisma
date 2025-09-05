@@ -219,12 +219,14 @@ enum Segment {
 
 enum PaymentMethod {
   QRIS
+  VA
   BANK_TRANSFER
   EWALLET
 }
 
 enum PaymentGateway {
   MIDTRANS
+  IPAYMU
 }
 
 enum PaymentStatus {

@@ -9,3 +9,8 @@ export { default as webhookService } from './webhook.service';
 export { default as memberService } from './member.service';
 export { default as membershipService } from './membership.service';
 export { default as programRegistrationService } from './program-registration.service';
+
+// ipaymu
+export { default as ipaymuService } from './ipaymu.service';
+export { default as checkoutIpaymuService } from './checkout-ipaymu.service';
+export { default as ipaymuWebhookService } from './ipaymu-webhook.service';

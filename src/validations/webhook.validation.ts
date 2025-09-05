@@ -21,6 +21,16 @@ const webhookSchema = Joi.object({
   transaction_time: Joi.string()
 });
 
+const ipaymuWebhookSchema = Joi.object({
+  SessionId: Joi.string().required(),
+  TransactionId: Joi.string().required(),
+  ReferenceId: Joi.string().required(),
+  PaymentChannel: Joi.string().required(),
+  Amount: Joi.string().required(),
+  Status: Joi.string().required()
+});
+
 export default {
-  webhookSchema
+  webhookSchema,
+  ipaymuWebhookSchema
 };
