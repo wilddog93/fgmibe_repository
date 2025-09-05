@@ -36,7 +36,7 @@ function mapIpaymuToPaymentStatus(status: string): PaymentStatus {
 }
 
 // === HANDLE PROGRAM REGISTRATION ===
-export const handleProgramRegistrationIpaymu = async (
+const handleProgramRegistrationIpaymu = async (
   orderId: string,
   status: PaymentStatus,
   payload: IpaymuNotif,
@@ -165,7 +165,7 @@ export const handleProgramRegistrationIpaymu = async (
 };
 
 // === HANDLE MEMBERSHIP REGISTRATION ===
-export const handleMembershipRegistrationIpaymu = async (
+const handleMembershipRegistrationIpaymu = async (
   orderId: string,
   status: PaymentStatus,
   payload: IpaymuNotif,
@@ -261,7 +261,7 @@ export const handleMembershipRegistrationIpaymu = async (
 };
 
 // === WEBHOOK HANDLER ===
-export const handleIpaymuWebhook = async (payload: IpaymuNotif) => {
+const handleIpaymuWebhook = async (payload: IpaymuNotif) => {
   const orderId = payload.ReferenceId;
   const status = mapIpaymuToPaymentStatus(payload.Status);
 
@@ -288,4 +288,8 @@ export const handleIpaymuWebhook = async (payload: IpaymuNotif) => {
   } else if (cache.membershipPackageId) {
     return handleMembershipRegistrationIpaymu(orderId, status, payload, cache);
   }
+};
+
+export default {
+  handleIpaymuWebhook
 };
