@@ -6,6 +6,7 @@ import { createIpaymuCheckout } from './ipaymu.service';
 import ApiError from '../utils/ApiError';
 import httpStatus from 'http-status';
 import { computePriceMember, computePriceProgram } from './pricing.service';
+import logger from '../config/logger';
 
 const prisma = new PrismaClient();
 
@@ -86,7 +87,7 @@ export const checkoutProgramIpaymu = async (
     price: [amount ? amount.toString() : '0'],
     description: ['Program Registration'],
     returnUrl: `${process.env.FRONTEND_URL}/payment/success`,
-    notifyUrl: `${process.env.BACKEND_URL}/api/ipaymu/webhook`,
+    notifyUrl: `${process.env.BACKEND_URL}/v1/payment/ipaymu/webhook`,
     cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
     referenceId: orderId,
     weight: ['1'],
@@ -100,6 +101,7 @@ export const checkoutProgramIpaymu = async (
 
   // 5️⃣ Call Ipaymu API
   const ipaymuRes = await createIpaymuCheckout(ipaymuBody);
+  logger.info(`[IPAYMU] Payment response program packages ${ipaymuRes}`);
 
   // 6️⃣ Simpan ke Redis (TTL 2h) → sama seperti Snap
   const cache = {
@@ -168,7 +170,7 @@ export const checkoutRegisterMemberIpaymu = async (
     price: [amount ? amount.toString() : '0'],
     description: ['Member Registration'],
     returnUrl: `${process.env.FRONTEND_URL}/payment/success`,
-    notifyUrl: `${process.env.BACKEND_URL}/v1/ipaymu/webhook`,
+    notifyUrl: `${process.env.BACKEND_URL}/v1/payment/ipaymu/webhook`,
     cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
     referenceId: orderId,
     weight: ['1'],
@@ -182,6 +184,7 @@ export const checkoutRegisterMemberIpaymu = async (
 
   // 5️⃣ Call Ipaymu API
   const ipaymuRes = await createIpaymuCheckout(ipaymuBody);
+  logger.info(`[IPAYMU] Payment response membership packages ${ipaymuRes}`);
 
   // 6️⃣ Simpan ke Redis (TTL 2h) → sama seperti Snap
   const cache = {
