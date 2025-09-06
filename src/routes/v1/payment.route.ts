@@ -2,6 +2,7 @@
 import express from 'express';
 import { midtransController, ipaymuController } from '../../controllers';
 import validate from '../../middlewares/validate';
+import { ipaymuVerificationMiddleware } from '../../middlewares/ipaymuVerification';
 import { checkoutValidation, webhookValidation, midtransValidation } from '../../validations';
 
 const router = express.Router();
@@ -47,8 +48,10 @@ router.post(
   midtransController.midtransWebhook
 );
 
+// ipaymu notify webhook
 router.post(
   '/ipaymu/webhook',
+  // ipaymuVerificationMiddleware,
   validate(webhookValidation.ipaymuWebhookSchema),
   ipaymuController.ipaymuWebhook
 );
