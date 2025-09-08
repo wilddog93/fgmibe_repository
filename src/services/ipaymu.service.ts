@@ -42,8 +42,9 @@ export async function createIpaymuCheckout(params: {
 }) {
   const body = {
     ...params,
-    paymentMethod: 'va',
-    paymentChannel: 'bca'
+    paymentMethod: 'qris' // contoh default
+    // paymentMethod: 'va',
+    // paymentChannel: 'bca'
   };
 
   const signature = generateSignature(body, 'POST');
@@ -52,16 +53,37 @@ export async function createIpaymuCheckout(params: {
     .replace(/[-:T.Z]/g, '') // hapus karakter non-digit
     .slice(0, 14); // ambil YYYYMMDDHHMMSS
 
+  const formData = new FormData();
+  Object.entries(body).forEach(([key, value]) => {
+    formData.append(key, Array.isArray(value) ? value.join(',') : value);
+  });
+
   const headers = {
-    // Accept: 'application/json',
+    Accept: 'application/json',
     'Content-Type': 'application/json',
     va: VA,
     signature: signature,
     timestamp
   };
+  // console.log(formData, 'formData-checkout');
+  // const { data, status } = await axios.post(`${IPAYMU_URL}/payment`, body, { headers });
+  // console.log({ data, status }, 'data-checkout');
 
-  const { data } = await axios.post(`${IPAYMU_URL}/payment`, body, { headers });
-  return data;
+  const data = await fetch(`${IPAYMU_URL}/payment`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    redirect: 'follow'
+  });
+  const result = await data.json();
+  if (result.Status !== '201' || result.Status !== '200') {
+    throw new Error(result.Message);
+  }
+  return result;
+  // .then((response) => response.text())
+  // .then((result) => console.log(result))
+  // .catch((error) => console.log('error', error));
+  // const { data } = await axios.post(`${IPAYMU_URL}/payment`, body, { headers });
 }
 
 export async function checkIpaymuTransaction(transactionId: string) {
