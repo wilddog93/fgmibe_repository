@@ -40,7 +40,10 @@ export async function createIpaymuCheckout(params: {
   pickupArea?: string;
   pickupAddress?: string;
 }) {
-  const body = params;
+  const body = {
+    ...params,
+    paymentMethod: 'qris' // default
+  };
 
   const signature = generateSignature(body, 'POST');
   const timestamp = new Date()
