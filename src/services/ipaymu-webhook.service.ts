@@ -14,6 +14,7 @@ type IpaymuNotif = {
   sid: string;
   reference_id: string;
   amount: string;
+  via: string;
 };
 
 // Map status Ipaymu → PaymentStatus Prisma

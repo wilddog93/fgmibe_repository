@@ -112,7 +112,7 @@ export const checkoutProgramIpaymu = async (
     source,
     amount,
     currency: 'IDR',
-    method: input.method ?? 'BANK_TRANSFER'
+    method: input.method ?? ''
   };
 
   await redis.set(`pay:${orderId}`, JSON.stringify(cache), {
