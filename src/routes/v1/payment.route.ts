@@ -482,31 +482,35 @@ export default router;
  *           schema:
  *             type: object
  *             required:
- *               - SessionId
- *               - TransactionId
- *               - ReferenceId
- *               - PaymentChannel
- *               - Amount
- *               - Status
+ *               - trx_id
+ *               - status
+ *               - status_code
+ *               - sid
+ *               - reference_id
+ *               - amount
+ *               - via
  *             properties:
- *               SessionId:
- *                 type: string
- *                 description: Session id
- *               TransactionId:
+ *               trx_id:
  *                 type: string
  *                 description: Transaction id
- *               ReferenceId:
- *                 type: string
- *                 description: Reference id
- *               PaymentChannel:
- *                 type: string
- *                 description: Payment channel
- *               Amount:
- *                 type: string
- *                 description: Amount
- *               Status:
+ *               status:
  *                 type: string
  *                 description: Status
+ *               status_code:
+ *                 type: string
+ *                 description: Status code
+ *               sid:
+ *                 type: string
+ *                 description: Sid
+ *               reference_id:
+ *                 type: string
+ *                 description: Reference id
+ *               amount:
+ *                 type: string
+ *                 description: Amount
+ *               via:
+ *                 type: string
+ *                 description: Via
  *     responses:
  *       "200":
  *         description: OK
