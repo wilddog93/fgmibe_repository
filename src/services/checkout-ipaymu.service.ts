@@ -166,7 +166,7 @@ export const checkoutRegisterMemberIpaymu = async (
     price: [amount ? amount.toString() : '0'],
     description: ['Member Registration'],
     returnUrl: `${process.env.FRONTEND_URL}/payment/success`,
-    notifyUrl: `${process.env.BACKEND_URL}/v1/payment/ipaymu/webhook`,
+    notifyUrl: `${process.env.API_URL}/v1/payment/ipaymu/webhook`,
     cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
     referenceId: orderId,
     buyerName: input.name,
