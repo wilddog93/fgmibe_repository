@@ -8,12 +8,18 @@ const prisma = new PrismaClient();
 
 // Type dari Ipaymu Notification
 type IpaymuNotif = {
-  SessionID: string;
-  TransactionId: string;
-  ReferenceId: string;
-  PaymentChannel: string;
-  Amount: string;
-  Status: string; // "berhasil" | "pending" | "gagal"
+  // SessionID: string;
+  // TransactionId: string;
+  // ReferenceId: string;
+  // PaymentChannel: string;
+  // Amount: string;
+  // Status: string; // "berhasil" | "pending" | "gagal"
+  trx_id: string;
+  status: string;
+  status_code: string;
+  sid: string;
+  reference_id: string;
+  amount: string;
 };
 
 // Map status Ipaymu → PaymentStatus Prisma
@@ -66,7 +72,7 @@ const handleProgramRegistrationIpaymu = async (
         data: {
           status,
           rawPayload: payload as any,
-          gatewayTransactionId: payload.TransactionId,
+          gatewayTransactionId: payload.trx_id,
           paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt
         }
       });
@@ -116,7 +122,7 @@ const handleProgramRegistrationIpaymu = async (
         currency: cache.currency,
         status,
         rawPayload: payload as any,
-        gatewayTransactionId: payload.TransactionId
+        gatewayTransactionId: payload.trx_id
       }
     });
   }
@@ -192,7 +198,7 @@ const handleMembershipRegistrationIpaymu = async (
         data: {
           status,
           rawPayload: payload as any,
-          gatewayTransactionId: payload.TransactionId,
+          gatewayTransactionId: payload.trx_id,
           paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt
         }
       });
@@ -228,7 +234,7 @@ const handleMembershipRegistrationIpaymu = async (
         currency: cache.currency,
         status,
         rawPayload: payload as any,
-        gatewayTransactionId: payload.TransactionId
+        gatewayTransactionId: payload.trx_id
       }
     });
   }
@@ -262,8 +268,8 @@ const handleMembershipRegistrationIpaymu = async (
 
 // === WEBHOOK HANDLER ===
 const handleIpaymuWebhook = async (payload: IpaymuNotif) => {
-  const orderId = payload.ReferenceId;
-  const status = mapIpaymuToPaymentStatus(payload.Status);
+  const orderId = payload.reference_id;
+  const status = mapIpaymuToPaymentStatus(payload.status);
 
   logger.info(`[IPAYMU] Webhook received: orderId=${orderId}, status=${status}`);
 
@@ -274,7 +280,7 @@ const handleIpaymuWebhook = async (payload: IpaymuNotif) => {
       data: {
         orderId,
         email: '',
-        amount: Math.floor(parseFloat(payload.Amount) || 0),
+        amount: Math.floor(parseFloat(payload.amount) || 0),
         currency: 'IDR',
         status,
         rawPayload: payload as any

@@ -623,4 +623,5 @@ export default router;
  *         $ref: '#/components/responses/InternalServerError'
  *       "503":
  *         $ref: '#/components/responses/ServiceUnavailable'
+ *
  */

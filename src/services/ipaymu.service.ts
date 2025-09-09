@@ -37,15 +37,10 @@ export async function createIpaymuCheckout(params: {
   buyerName: string;
   buyerEmail: string;
   buyerPhone: string;
-  pickupArea: string;
-  pickupAddress: string;
+  pickupArea?: string;
+  pickupAddress?: string;
 }) {
-  const body = {
-    ...params,
-    paymentMethod: 'qris' // contoh default
-    // paymentMethod: 'va',
-    // paymentChannel: 'bca'
-  };
+  const body = params;
 
   const signature = generateSignature(body, 'POST');
   const timestamp = new Date()
@@ -76,7 +71,8 @@ export async function createIpaymuCheckout(params: {
     redirect: 'follow'
   });
   const result = await data.json();
-  if (result.Status !== '201' || result.Status !== '200') {
+  console.log(result, 'result-checkout');
+  if (result.Status !== 200) {
     throw new Error(result.Message);
   }
   return result;

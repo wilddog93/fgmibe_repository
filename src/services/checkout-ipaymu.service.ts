@@ -90,13 +90,9 @@ export const checkoutProgramIpaymu = async (
     notifyUrl: `${process.env.API_URL}/v1/payment/ipaymu/webhook`,
     cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
     referenceId: orderId,
-    weight: [],
-    dimension: [],
     buyerName: input.name,
     buyerEmail: normalizedEmail,
-    buyerPhone: input.phone ?? '',
-    pickupArea: '',
-    pickupAddress: ''
+    buyerPhone: input.phone ?? ''
   };
 
   // 5️⃣ Call Ipaymu API
@@ -127,7 +123,7 @@ export const checkoutProgramIpaymu = async (
     orderId,
     amount: amount as number,
     currency: 'IDR',
-    ipaymu: ipaymuRes // FE bisa ambil redirectUrl di sini
+    ipaymu: ipaymuRes?.Data // FE bisa ambil redirectUrl di sini
   };
 };
 
