@@ -4,8 +4,8 @@ import config from './config';
 const redis = createClient({
   url:
     config.env !== 'production'
-      ? config.redis.host
-      : `redis://${config.redis.password ? `:${config.redis.password}@` : ''}${config.redis.host}:${
+      ? `${config.redis.host}:${config.redis.port}`
+      : `${config.redis.password ? `:${config.redis.password}@` : ''}${config.redis.host}:${
           config.redis.port
         }`
 });
