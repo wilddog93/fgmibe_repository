@@ -70,7 +70,9 @@ const handleProgramRegistrationIpaymu = async (
           rawPayload: payload as any,
           gatewayTransactionId: payload.trx_id,
           paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt,
-          method: payload?.via?.toUpperCase() as PaymentMethod
+          method: payload?.via?.toUpperCase() as PaymentMethod,
+          gateway: 'IPAYMU',
+          referenceType: 'PROGRAM'
         }
       });
 
@@ -122,7 +124,9 @@ const handleProgramRegistrationIpaymu = async (
           ? cache.method
           : (payload?.via?.toUpperCase() as PaymentMethod) || 'QRIS',
         rawPayload: payload as any,
-        gatewayTransactionId: payload.trx_id
+        gatewayTransactionId: payload.trx_id,
+        gateway: 'IPAYMU',
+        referenceType: 'PROGRAM'
       }
     });
   }
@@ -157,7 +161,8 @@ const handleProgramRegistrationIpaymu = async (
         rawPayload: payload as any,
         paidAt: new Date(),
         registrationId: registration.id,
-        memberId: cache.memberId ?? undefined
+        memberId: cache.memberId ?? undefined,
+        referenceType: 'PROGRAM'
       }
     });
 
@@ -200,7 +205,9 @@ const handleMembershipRegistrationIpaymu = async (
           rawPayload: payload as any,
           gatewayTransactionId: payload.trx_id,
           paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt,
-          method: payload?.via?.toUpperCase() as PaymentMethod
+          method: payload?.via?.toUpperCase() as PaymentMethod,
+          gateway: 'IPAYMU',
+          referenceType: 'MEMBERSHIP'
         }
       });
 
@@ -238,7 +245,9 @@ const handleMembershipRegistrationIpaymu = async (
         gatewayTransactionId: payload.trx_id,
         method: cache.method
           ? cache.method
-          : (payload?.via?.toUpperCase() as PaymentMethod) || 'QRIS'
+          : (payload?.via?.toUpperCase() as PaymentMethod) || 'QRIS',
+        gateway: 'IPAYMU',
+        referenceType: 'MEMBERSHIP'
       }
     });
   }
@@ -260,7 +269,8 @@ const handleMembershipRegistrationIpaymu = async (
         status,
         rawPayload: payload as any,
         paidAt: new Date(),
-        memberId: member.id
+        memberId: member.id,
+        referenceType: 'MEMBERSHIP'
       }
     });
 
