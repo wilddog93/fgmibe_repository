@@ -8,12 +8,6 @@ const prisma = new PrismaClient();
 
 // Type dari Ipaymu Notification
 type IpaymuNotif = {
-  // SessionID: string;
-  // TransactionId: string;
-  // ReferenceId: string;
-  // PaymentChannel: string;
-  // Amount: string;
-  // Status: string; // "berhasil" | "pending" | "gagal"
   trx_id: string;
   status: string;
   status_code: string;
