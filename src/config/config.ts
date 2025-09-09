@@ -71,7 +71,8 @@ export default {
   },
   redis: {
     host: envVars.REDIS_HOST,
-    port: envVars.REDIS_PORT
+    port: envVars.REDIS_PORT,
+    password: envVars.REDIS_PASSWORD
   },
   midtrans: {
     baseUrl: envVars.MIDTRANS_BASE_URL,

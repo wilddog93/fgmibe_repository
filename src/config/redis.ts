@@ -1,15 +1,25 @@
 import { createClient } from 'redis';
+import config from './config';
 
 const redis = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
+  url:
+    config.env !== 'production'
+      ? config.redis.host
+      : `redis://${config.redis.password ? `:${config.redis.password}@` : ''}${config.redis.host}:${
+          config.redis.port
+        }`
 });
 
-redis.on('error', (err) => console.error('Redis Client Error', err));
+redis.on('error', (err) => console.error('❌ Redis Client Error:', err));
 
 export const initRedis = async () => {
-  if (!redis.isOpen) {
-    await redis.connect();
-    console.log('✅ Redis connected');
+  try {
+    if (!redis.isOpen) {
+      await redis.connect();
+      console.log('✅ Redis connected');
+    }
+  } catch (err) {
+    console.error('❌ Failed to connect to Redis:', err);
   }
 };
 
