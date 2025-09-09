@@ -155,7 +155,9 @@ const handleProgramRegistrationIpaymu = async (
         email: cache.email,
         amount: cache.amount,
         currency: cache.currency,
-        method: cache.method,
+        method: cache.method
+          ? cache.method
+          : (payload?.via?.toUpperCase() as PaymentMethod) || 'QRIS',
         gateway: 'IPAYMU',
         status,
         rawPayload: payload as any,
