@@ -3,7 +3,7 @@ import config from './config';
 
 const redis = createClient({
   url:
-    config.env !== 'production'
+    config.env === 'dev'
       ? `${config.redis.host}:${config.redis.port}`
       : `${config.redis.password ? `:${config.redis.password}@` : ''}${config.redis.host}:${
           config.redis.port
