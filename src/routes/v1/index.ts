@@ -7,7 +7,6 @@ import programRegistrationRoute from './program-registration.route';
 import paymentRoute from './payment.route';
 import membershipRoute from './membership.route';
 import memberRoute from './member.route';
-import ipaymuRoute from './ipaymu.route';
 import config from '../../config/config';
 
 const router = express.Router();
@@ -40,10 +39,6 @@ const defaultRoutes = [
   {
     path: '/members',
     route: memberRoute
-  },
-  {
-    path: '/ipaymu',
-    route: ipaymuRoute
   }
 ];
 

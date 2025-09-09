@@ -19,8 +19,9 @@ type IpaymuNotif = {
 
 // Map status Ipaymu → PaymentStatus Prisma
 function mapIpaymuToPaymentStatus(status: string): PaymentStatus {
-  switch (status.toLowerCase()) {
+  switch (status) {
     case 'berhasil':
+    case 'sukses':
     case 'success':
     case 'completed':
       return 'COMPLETED';
