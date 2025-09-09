@@ -2,12 +2,7 @@ import { createClient } from 'redis';
 import config from './config';
 
 const redis = createClient({
-  url:
-    config.env !== 'production'
-      ? `redis://${config.redis.host}:${config.redis.port}`
-      : `redis://${config.redis.password ? `:${config.redis.password}@` : ''}${config.redis.host}:${
-          config.redis.port
-        }`
+  url: `redis://${config.redis.host}:${config.redis.port}`
 });
 
 redis.on('error', (err) => console.error('❌ Redis Client Error:', err));
