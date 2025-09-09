@@ -1,5 +1,5 @@
 // src/services/ipaymu-webhook.service.ts
-import { PrismaClient, PaymentStatus, Segment } from '@prisma/client';
+import { PrismaClient, PaymentStatus, Segment, PaymentMethod } from '@prisma/client';
 import redis from '../config/redis';
 import logger from '../config/logger';
 import { createMemberAndUser } from './member.service';
@@ -69,7 +69,8 @@ const handleProgramRegistrationIpaymu = async (
           status,
           rawPayload: payload as any,
           gatewayTransactionId: payload.trx_id,
-          paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt
+          paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt,
+          method: payload?.via?.toUpperCase() as PaymentMethod
         }
       });
 
@@ -117,6 +118,9 @@ const handleProgramRegistrationIpaymu = async (
         amount: cache.amount,
         currency: cache.currency,
         status,
+        method: cache.method
+          ? cache.method
+          : (payload?.via?.toUpperCase() as PaymentMethod) || 'QRIS',
         rawPayload: payload as any,
         gatewayTransactionId: payload.trx_id
       }
@@ -195,7 +199,8 @@ const handleMembershipRegistrationIpaymu = async (
           status,
           rawPayload: payload as any,
           gatewayTransactionId: payload.trx_id,
-          paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt
+          paidAt: status === 'COMPLETED' ? new Date() : existing.paidAt,
+          method: payload?.via?.toUpperCase() as PaymentMethod
         }
       });
 
@@ -230,7 +235,10 @@ const handleMembershipRegistrationIpaymu = async (
         currency: cache.currency,
         status,
         rawPayload: payload as any,
-        gatewayTransactionId: payload.trx_id
+        gatewayTransactionId: payload.trx_id,
+        method: cache.method
+          ? cache.method
+          : (payload?.via?.toUpperCase() as PaymentMethod) || 'QRIS'
       }
     });
   }
@@ -245,7 +253,9 @@ const handleMembershipRegistrationIpaymu = async (
         email: cache.email,
         amount: cache.amount,
         currency: cache.currency,
-        method: cache.method,
+        method: cache.method
+          ? cache.method
+          : (payload?.via?.toUpperCase() as PaymentMethod) || 'QRIS',
         gateway: 'IPAYMU',
         status,
         rawPayload: payload as any,
