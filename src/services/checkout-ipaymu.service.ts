@@ -169,13 +169,9 @@ export const checkoutRegisterMemberIpaymu = async (
     notifyUrl: `${process.env.BACKEND_URL}/v1/payment/ipaymu/webhook`,
     cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
     referenceId: orderId,
-    weight: ['1'],
-    dimension: ['1:1:1'],
     buyerName: input.name,
     buyerEmail: normalizedEmail,
-    buyerPhone: input.phone ?? '',
-    pickupArea: '',
-    pickupAddress: ''
+    buyerPhone: input.phone ?? ''
   };
 
   // 5️⃣ Call Ipaymu API
@@ -196,7 +192,7 @@ export const checkoutRegisterMemberIpaymu = async (
     userId: input.userId ?? null,
     amount,
     currency: 'IDR',
-    method: input.method ?? 'BANK_TRANSFER'
+    method: input.method ?? ''
   };
 
   await redis.set(`pay:${orderId}`, JSON.stringify(cache), {
@@ -207,7 +203,7 @@ export const checkoutRegisterMemberIpaymu = async (
     orderId,
     amount: amount ?? 0,
     currency: 'IDR',
-    ipaymu: ipaymuRes // FE bisa ambil redirectUrl di sini
+    ipaymu: ipaymuRes?.Data // FE bisa ambil redirectUrl di sini
   };
 };
 
