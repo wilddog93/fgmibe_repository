@@ -10,37 +10,47 @@ const createMember = {
     interestAreas: Joi.array().items(Joi.string()),
     joinDate: Joi.date().required(),
     status: Joi.string().valid('ACTIVE', 'INACTIVE'),
-    membershipPackageId: Joi.string().uuid().allow(''),
+    membershipPackageId: Joi.string().allow(''),
     userId: Joi.number().integer().allow(0, null)
   })
 };
 
 const getMembers = {
   query: Joi.object().keys({
-    id: Joi.string().uuid(),
+    id: Joi.string(),
     name: Joi.string(),
     email: Joi.string().email(),
     phone: Joi.string(),
     institution: Joi.string(),
     segment: Joi.string(),
-    interestAreas: Joi.array().items(Joi.string()),
+    // ✅ interestAreas bisa "AI,Biotech" (string) atau array
+    interestAreas: Joi.alternatives()
+      .try(Joi.array().items(Joi.string()), Joi.string())
+      .custom((value) => {
+        if (typeof value === 'string') {
+          // split by comma & trim spaces
+          return value.split(',').map((v) => v.trim());
+        }
+        return value;
+      }),
     joinDate: Joi.date(),
     status: Joi.string(),
     sortBy: Joi.string(),
-    limit: Joi.number().integer(),
-    page: Joi.number().integer()
+    sortType: Joi.string().valid('asc', 'desc').default('desc'),
+    limit: Joi.number().integer().min(1).default(10),
+    page: Joi.number().integer().min(1).default(1)
   })
 };
 
 const getMember = {
   params: Joi.object().keys({
-    memberId: Joi.string().uuid()
+    memberId: Joi.string()
   })
 };
 
 const updateMember = {
   params: Joi.object().keys({
-    memberId: Joi.string().uuid()
+    memberId: Joi.string()
   }),
   body: Joi.object()
     .keys({
@@ -52,7 +62,7 @@ const updateMember = {
       interestAreas: Joi.array().items(Joi.string()),
       joinDate: Joi.date(),
       status: Joi.string().valid('ACTIVE', 'INACTIVE'),
-      membershipPackageId: Joi.string().uuid(),
+      membershipPackageId: Joi.string(),
       userId: Joi.number().integer()
     })
     .min(1)
@@ -60,7 +70,7 @@ const updateMember = {
 
 const deleteMember = {
   params: Joi.object().keys({
-    memberId: Joi.string().uuid()
+    memberId: Joi.string()
   })
 };
 
