@@ -10,7 +10,7 @@ const createMembershipPackage = {
 
 const getMembershipPackages = {
   query: Joi.object().keys({
-    id: Joi.string().uuid(),
+    id: Joi.string(),
     name: Joi.string(),
     description: Joi.string(),
     price: Joi.number(),
@@ -24,13 +24,13 @@ const getMembershipPackages = {
 
 const getMembershipPackage = {
   params: Joi.object().keys({
-    membershipPackageId: Joi.string().uuid()
+    membershipPackageId: Joi.string()
   })
 };
 
 const updateMembershipPackage = {
   params: Joi.object().keys({
-    membershipPackageId: Joi.string().uuid()
+    membershipPackageId: Joi.string()
   }),
   body: Joi.object()
     .keys({
@@ -43,7 +43,7 @@ const updateMembershipPackage = {
 
 const deleteMembershipPackage = {
   params: Joi.object().keys({
-    membershipPackageId: Joi.string().uuid()
+    membershipPackageId: Joi.string()
   })
 };
 
