@@ -42,7 +42,8 @@ app.use(
     origin: (origin, callback) => {
       const allowedOrigins = [
         config.frontendUrl, // domain utama
-        config.frontendDevUrl // domain kedua
+        config.frontendDevUrl, // domain kedua
+        'http://localhost:3000' // localhost
       ];
 
       // Jika origin tidak ada (misalnya request dari server sendiri) -> allow
