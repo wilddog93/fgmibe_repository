@@ -302,40 +302,69 @@ const queryMembers = async <Key extends keyof Member>(
   const sortBy = options.sortBy ?? 'createdAt';
   const sortType = options.sortType ?? 'desc';
   const selected = keys.reduce((obj, k) => ({ ...obj, [k]: true }), {});
-  const query: Prisma.MemberWhereInput = {
-    id: {
-      equals: filter?.id
-    },
-    name: {
-      contains: filter?.name?.toLowerCase(),
-      mode: 'insensitive'
-    },
-    email: {
-      contains: filter?.email?.toLowerCase(),
-      mode: 'insensitive'
-    },
-    phone: {
-      contains: filter?.phone?.toLowerCase(),
-      mode: 'insensitive'
-    },
-    institution: {
-      contains: filter?.institution?.toLowerCase(),
-      mode: 'insensitive'
-    },
-    segment: {
-      equals: filter?.segment
-    },
-    interestAreas: {
-      hasSome: filter?.interestAreas
-    },
-    joinDate: {
-      gte: filter?.joinDate
-    },
-    status: {
-      equals: filter?.status
-    }
-  };
+  // const query: Prisma.MemberWhereInput = {
+  //   id: {
+  //     equals: filter?.id
+  //   },
+  //   name: {
+  //     contains: filter?.name?.toLowerCase(),
+  //     mode: 'insensitive'
+  //   },
+  //   email: {
+  //     contains: filter?.email?.toLowerCase(),
+  //     mode: 'insensitive'
+  //   },
+  //   phone: {
+  //     contains: filter?.phone?.toLowerCase(),
+  //     mode: 'insensitive'
+  //   },
+  //   institution: {
+  //     contains: filter?.institution?.toLowerCase(),
+  //     mode: 'insensitive'
+  //   },
+  //   segment: {
+  //     equals: filter?.segment
+  //   },
+  //   interestAreas: {
+  //     equals: filter?.interestAreas,
+  //     isEmpty: filter?.interestAreas?.length === 0
+  //   },
+  //   joinDate: {
+  //     gte: filter?.joinDate
+  //   },
+  //   status: {
+  //     equals: filter?.status
+  //   }
+  // };
   // count total
+
+  console.log(filter, 'filter-member');
+  const query: Prisma.MemberWhereInput = {
+    ...(filter?.id && { id: { equals: filter.id } }),
+    ...(filter?.name && {
+      name: { contains: filter.name.toLowerCase(), mode: 'insensitive' }
+    }),
+    ...(filter?.email && {
+      email: { contains: filter.email.toLowerCase(), mode: 'insensitive' }
+    }),
+    ...(filter?.phone && {
+      phone: { contains: filter.phone.toLowerCase(), mode: 'insensitive' }
+    }),
+    ...(filter?.institution && {
+      institution: {
+        contains: filter.institution.toLowerCase(),
+        mode: 'insensitive'
+      }
+    }),
+    ...(filter?.segment && { segment: { equals: filter.segment } }),
+
+    // ✅ FIX: filter interestAreas
+    ...(filter?.interestAreas?.length ? { interestAreas: { hasSome: filter.interestAreas } } : {}),
+
+    ...(filter?.joinDate && { joinDate: { gte: filter.joinDate } }),
+    ...(filter?.status && { status: { equals: filter.status } })
+  };
+
   const totalItems = await prisma.member.count({ where: query });
   // data
   const members = await prisma.member.findMany({
