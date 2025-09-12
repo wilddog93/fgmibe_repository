@@ -39,7 +39,21 @@ app.use(compression());
 // enable cors
 app.use(
   cors({
-    origin: [config.frontendUrl, config.frontendDevUrl],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        config.frontendUrl, // domain utama
+        config.frontendDevUrl // domain kedua
+      ];
+
+      // Jika origin tidak ada (misalnya request dari server sendiri) -> allow
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true); // allow
+      } else {
+        callback(new Error('Not allowed by CORS')); // block
+      }
+    },
     credentials: true
   })
 );
