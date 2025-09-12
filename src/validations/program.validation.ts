@@ -22,7 +22,7 @@ const createProgram = {
 
 const getPrograms = {
   query: Joi.object().keys({
-    id: Joi.string().uuid(),
+    id: Joi.string(),
     name: Joi.string(),
     description: Joi.string(),
     startDate: Joi.date(),
@@ -39,13 +39,13 @@ const getPrograms = {
 
 const getProgram = {
   params: Joi.object().keys({
-    programId: Joi.string().uuid()
+    programId: Joi.string()
   })
 };
 
 const updateProgram = {
   params: Joi.object().keys({
-    programId: Joi.string().uuid()
+    programId: Joi.string()
   }),
   body: Joi.object()
     .keys({
@@ -66,7 +66,7 @@ const updateProgram = {
 
 const deleteProgram = {
   params: Joi.object().keys({
-    programId: Joi.string().uuid()
+    programId: Joi.string()
   })
 };
 
