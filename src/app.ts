@@ -39,7 +39,7 @@ app.use(compression());
 // enable cors
 app.use(
   cors({
-    origin: config.frontendUrl,
+    origin: [config.frontendUrl, config.frontendDevUrl],
     credentials: true
   })
 );

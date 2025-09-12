@@ -84,5 +84,6 @@ export default {
     apiKey: envVars.IPAYMU_API_KEY,
     va: envVars.IPAYMU_VA
   },
-  frontendUrl: envVars.FRONTEND_URL
+  frontendUrl: envVars.FRONTEND_URL,
+  frontendDevUrl: envVars.FRONTEND_DEV_URL
 };
