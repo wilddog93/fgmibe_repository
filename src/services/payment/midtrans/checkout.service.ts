@@ -1,14 +1,6 @@
 // src/services/checkout.service.ts
 import redis from '../../../config/redis';
-import {
-  PrismaClient,
-  PaymentMethod,
-  Segment,
-  ProgramRegistration,
-  User,
-  Member,
-  MemberStatus
-} from '@prisma/client';
+import { PrismaClient, PaymentMethod, Segment, User, Member, MemberStatus } from '@prisma/client';
 import { genOrderId } from '../../../utils/orderId';
 import { computePriceMember, computePriceProgram } from '../pricing.service';
 import { createTransactionCharge, createTransactionSnap } from './service';

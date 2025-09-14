@@ -1,4 +1,3 @@
-import redis from '../../../config/redis';
 import { User, Member, PrismaClient } from '@prisma/client';
 
 type QueryFilter = {
