@@ -24,8 +24,8 @@ async function main() {
     create: {
       id: 'program-1',
       name: 'AI & Data Workshop',
-      priceMember: 200000,
-      priceNonMember: 400000,
+      priceMember: 100000,
+      priceNonMember: 200000,
       description: 'Learn AI fundamentals with hands-on practice.',
       startDate: new Date('2025-09-01'),
       endDate: new Date('2025-09-03'),
@@ -41,7 +41,7 @@ async function main() {
       id: 'member-basic',
       name: 'Basic',
       description: 'Basic',
-      price: 1000000
+      price: 25000
     }
   });
 
