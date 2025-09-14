@@ -6,6 +6,8 @@ export { default as membershipController } from './membership/controller';
 export { default as memberController } from './member/controller';
 export { default as programRegistrationController } from './program-registration/program-registration.controller';
 
+// check email registration
+export { default as checkEmailController } from './payment/check-email.controller';
 // ipaymu
 export { default as ipaymuController } from './payment/ipaymu.controller';
 // midtrans

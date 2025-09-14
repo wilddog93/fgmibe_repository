@@ -1,6 +1,6 @@
 // src/routes/payment.routes.ts
 import express from 'express';
-import { midtransController, ipaymuController } from '../../../controllers';
+import { midtransController, ipaymuController, checkEmailController } from '../../../controllers';
 import validate from '../../../middlewares/validate';
 import { ipaymuVerificationMiddleware } from '../../../middlewares/ipaymuVerification';
 
@@ -8,13 +8,14 @@ import { checkoutValidation, webhookValidation, midtransValidation } from '../..
 
 const router = express.Router();
 
+router.get('/check/email-register-program', checkEmailController.checkEmailRegistrationProgram);
+router.get('/check/email-register-member', checkEmailController.checkEmailRegistrationMember);
+
 router.get(
   '/status',
   validate(midtransValidation.statusSchema),
   midtransController.getPaymentStatus
 );
-router.get('/check/email-register-program', midtransController.checkEmailRegistrationProgram);
-router.get('/check/email-register-member', midtransController.checkEmailRegistrationMember);
 
 router.post(
   '/checkout/program',
@@ -43,6 +44,7 @@ router.post(
 router.post('/checkout/program/ipaymu', ipaymuController.createCheckoutProgramIpaymu);
 router.post('/checkout/member/ipaymu', ipaymuController.createCheckoutMemberIpaymu);
 
+// midtrans notify webhook
 router.post(
   '/midtrans/webhook',
   validate(webhookValidation.webhookSchema),

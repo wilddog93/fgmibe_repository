@@ -35,18 +35,6 @@ const midtransWebhook = catchAsync(async (req: Request, res: Response) => {
   res.status(httpStatus.OK).send({ ok: true, result });
 });
 
-const checkEmailRegistrationProgram = catchAsync(async (req: Request, res: Response) => {
-  const filter = pick(req.query, ['email']);
-  const result = await checkoutService.checkEmailRegistrationProgram(filter);
-  res.status(httpStatus.OK).send(result);
-});
-
-const checkEmailRegistrationMember = catchAsync(async (req: Request, res: Response) => {
-  const filter = pick(req.query, ['email']);
-  const result = await checkoutService.checkEmailRegistrationMember(filter);
-  res.status(httpStatus.OK).send(result);
-});
-
 const getPaymentStatus = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, ['order_id']);
   console.log(req, 'order_id by');
@@ -60,7 +48,5 @@ export default {
   createCheckoutMember,
   createCheckoutProgram,
   createCheckoutMemberSnap,
-  createCheckoutProgramSnap,
-  checkEmailRegistrationMember,
-  checkEmailRegistrationProgram
+  createCheckoutProgramSnap
 };

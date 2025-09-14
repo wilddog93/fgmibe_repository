@@ -454,8 +454,6 @@ export const checkEmailRegistrationMember = async (
 export default {
   checkoutProgram,
   checkoutProgramSnap,
-  checkEmailRegistrationProgram,
   checkoutRegisterMember,
-  checkoutRegisterMemberSnap,
-  checkEmailRegistrationMember
+  checkoutRegisterMemberSnap
 };
