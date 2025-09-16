@@ -78,7 +78,7 @@ export async function createIpaymuCheckout(params: {
   const result = await data;
   console.log({ data, result }, 'result-checkout');
   if (result.Status !== 200) {
-    throw new Error(result.Message);
+    throw new Error(result.Message || result.message);
   }
   return result;
   // .then((response) => response.text())
