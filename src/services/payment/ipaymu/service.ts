@@ -36,8 +36,8 @@ export async function createIpaymuCheckout(params: {
   buyerName: string;
   buyerEmail: string;
   buyerPhone: string;
-  pickupArea?: string;
-  pickupAddress?: string;
+  // pickupArea?: string;
+  // pickupAddress?: string;
 }) {
   const body = {
     ...params,
