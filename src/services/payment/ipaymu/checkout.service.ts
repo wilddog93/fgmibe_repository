@@ -102,6 +102,7 @@ export const checkoutProgramIpaymu = async (
 
   // 5️⃣ Call Ipaymu API
   const ipaymuRes = await createIpaymuCheckout(ipaymuBody);
+  console.log(ipaymuRes, 'cek-response-ipaymu');
   logger.info(`[IPAYMU] Payment response program packages ${ipaymuRes}`);
 
   // 6️⃣ Simpan ke Redis (TTL 2h) → sama seperti Snap
