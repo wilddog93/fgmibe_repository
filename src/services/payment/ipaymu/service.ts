@@ -76,11 +76,23 @@ export async function createIpaymuCheckout(params: {
     return res.data;
   } catch (err: any) {
     if (axios.isAxiosError(err) && err.response) {
-      throw new ApiError(
-        err.response.status || err.response.data?.Status,
-        err.response.data?.Message || err.response.data?.message
-      );
       console.error('IPAYMU ERROR:', err.response.data); // << ini yg penting
+      if (err.response.status === 400) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          err.response.data?.Message || err.response.data?.message
+        );
+      } else if (err.response.status === 401) {
+        throw new ApiError(
+          httpStatus.UNAUTHORIZED,
+          err.response.data?.Message || err.response.data?.message
+        );
+      } else {
+        throw new ApiError(
+          err.response.status || err.response.data?.Status,
+          err.response.data?.Message || err.response.data?.message
+        );
+      }
     } else {
       throw new ApiError(httpStatus.BAD_REQUEST, err?.response?.data?.message || err?.data);
     }
