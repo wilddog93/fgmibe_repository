@@ -7,6 +7,7 @@ import ApiError from '../../../utils/ApiError';
 import httpStatus from 'http-status';
 import { computePriceMember, computePriceProgram } from '../pricing.service';
 import logger from '../../../config/logger';
+import config from '../../../config/config';
 
 const prisma = new PrismaClient();
 
@@ -86,9 +87,13 @@ export const checkoutProgramIpaymu = async (
     qty: ['1'],
     price: [amount ? amount.toString() : '0'],
     description: ['Program Registration'],
-    returnUrl: `${process.env.FRONTEND_URL}/payment?payment_type=member`,
-    notifyUrl: `${process.env.API_URL}/v1/payment/ipaymu/webhook`,
-    cancelUrl: `${process.env.FRONTEND_URL}/payment?payment_type=member`,
+    returnUrl: `${
+      config.env === 'production' ? config.frontendUrl : config.frontendDevUrl
+    }/payment?payment_type=program`,
+    notifyUrl: `${config.url}/v1/payment/ipaymu/webhook`,
+    cancelUrl: `${
+      config.env === 'production' ? config.frontendUrl : config.frontendDevUrl
+    }/payment?payment_type=program`,
     referenceId: orderId,
     buyerName: input.name,
     buyerEmail: normalizedEmail,
@@ -165,9 +170,13 @@ export const checkoutRegisterMemberIpaymu = async (
     qty: ['1'],
     price: [amount ? amount.toString() : '0'],
     description: ['Member Registration'],
-    returnUrl: `${process.env.FRONTEND_URL}/payment?payment_type=member`,
-    notifyUrl: `${process.env.API_URL}/v1/payment/ipaymu/webhook`,
-    cancelUrl: `${process.env.FRONTEND_URL}/payment?payment_type=member`,
+    returnUrl: `${
+      config.env === 'production' ? config.frontendUrl : config.frontendDevUrl
+    }/payment?payment_type=member`,
+    notifyUrl: `${config.url}/v1/payment/ipaymu/webhook`,
+    cancelUrl: `${
+      config.env === 'production' ? config.frontendUrl : config.frontendDevUrl
+    }/payment?payment_type=member`,
     referenceId: orderId,
     buyerName: input.name,
     buyerEmail: normalizedEmail,
