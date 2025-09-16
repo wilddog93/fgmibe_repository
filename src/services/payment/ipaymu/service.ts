@@ -2,6 +2,8 @@
 import crypto from 'crypto';
 import axios from 'axios';
 import config from '../../../config/config';
+import ApiError from '../../../utils/ApiError';
+import httpStatus from 'http-status';
 
 const IPAYMU_URL = config.ipaymu.apiUrl || 'https://sandbox.ipaymu.com/api/v2';
 const VA = config.ipaymu.va || '';
@@ -66,25 +68,44 @@ export async function createIpaymuCheckout(params: {
   // const { data, status } = await axios.post(`${IPAYMU_URL}/payment`, body, { headers });
   // console.log({ data, status }, 'data-checkout');
 
-  const data = await fetch(`${IPAYMU_URL}/payment`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-    redirect: 'follow'
-  })
-    .then((response) => {
-      console.log(response, 'response-checkout');
-      return response.json();
-    })
-    .catch((error) => {
-      throw new Error(error);
+  try {
+    const res = await axios.post(`${IPAYMU_URL}/payment`, body, {
+      headers
     });
-
-  console.log({ data }, 'result-checkout');
-  if (data?.Status !== 200 || data?.Status !== '200') {
-    throw new Error(data?.Message || data?.message);
+    console.log('SUCCESS:', res.data);
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.error('IPAYMU ERROR:', err.response.data); // << ini yg penting
+    } else {
+      console.error('UNKNOWN ERROR:', err);
+    }
   }
-  return data;
+
+  // const data = await fetch(`${IPAYMU_URL}/payment`, {
+  //   method: 'POST',
+  //   headers,
+  //   body: JSON.stringify(body),
+  //   redirect: 'follow'
+  // })
+  //   .then((response) => {
+  //     console.log(response, 'response-checkout');
+  //     return response.json();
+  //   })
+  //   .catch((error) => {
+  //     throw new ApiError(httpStatus.BAD_REQUEST, error?.data?.message || error?.data?.Message);
+  //     // throw new Error(error);
+  //   });
+
+  // console.log(data, 'result-checkout');
+  // if (data?.Data === null) {
+  //   throw new Error(data?.Message || data?.message);
+  // }
+  // return data;
+  // if (data?.Status !== 200 || data?.Status !== '200') {
+  //   throw new Error(data?.Message || data?.message);
+  // }
+  // return data;
   // .then((response) => response.text())
   // .then((result) => console.log(result))
   // .catch((error) => console.log('error', error));
