@@ -76,7 +76,10 @@ export async function createIpaymuCheckout(params: {
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-      console.error('IPAYMU ERROR:', err.response.data); // << ini yg penting
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        err.response.data?.Message || err.response.data?.message
+      );
     } else {
       console.error('UNKNOWN ERROR:', err);
     }
