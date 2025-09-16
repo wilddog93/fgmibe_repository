@@ -76,7 +76,7 @@ export async function createIpaymuCheckout(params: {
     .then((result) => result)
     .catch((error) => console.log('error', error));
   const result = await data;
-  console.log(data, 'result-checkout');
+  console.log({ data, result }, 'result-checkout');
   if (result.Status !== 200) {
     throw new Error(result.Message);
   }
