@@ -74,16 +74,16 @@ export async function createIpaymuCheckout(params: {
   })
     .then((response) => {
       console.log(response, 'response-checkout');
-      return response.json();
+      return response;
     })
+    .then((response) => response.json())
     .catch((error) => console.log('error', error));
 
-  const result = await data;
-  console.log({ data, result }, 'result-checkout');
-  if (result.Status !== 200) {
-    throw new Error(result.Message || result.message);
+  console.log({ data }, 'result-checkout');
+  if (data?.Status !== 200) {
+    throw new Error(data?.Message || data?.message);
   }
-  return result;
+  return data;
   // .then((response) => response.text())
   // .then((result) => console.log(result))
   // .catch((error) => console.log('error', error));
