@@ -102,6 +102,8 @@ export const checkoutProgramIpaymu = async (
 
   // 5️⃣ Call Ipaymu API
   const ipaymuRes = await createIpaymuCheckout(ipaymuBody);
+  if (ipaymuRes?.Status !== 200)
+    throw new ApiError(httpStatus.BAD_REQUEST, ipaymuRes?.Message || ipaymuRes?.message);
   console.log(ipaymuRes, 'cek-response-ipaymu');
   logger.info(`[IPAYMU] Payment response program packages ${ipaymuRes}`);
 
