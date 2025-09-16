@@ -68,7 +68,7 @@ passport.use('github', githubStrategy);
 
 // Routes
 app.get('/', (req, res) => {
-  res.json({ message: '🚀 Hello from FGMI API Boilerplate Development!' });
+  res.json({ message: '🚀 Hello from FGMI API Boilerplate Production!' });
 });
 
 // Health Check
