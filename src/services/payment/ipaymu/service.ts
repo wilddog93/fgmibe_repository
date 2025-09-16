@@ -80,6 +80,7 @@ export async function createIpaymuCheckout(params: {
         err.response.status || err.response.data?.Status,
         err.response.data?.Message || err.response.data?.message
       );
+      console.error('IPAYMU ERROR:', err.response.data); // << ini yg penting
     } else {
       throw new ApiError(httpStatus.BAD_REQUEST, err?.response?.data?.message || err?.data);
     }
