@@ -72,8 +72,10 @@ export async function createIpaymuCheckout(params: {
     body: JSON.stringify(body),
     redirect: 'follow'
   })
-    .then((response) => response.json())
-    // .then((result) => result)
+    .then((response) => {
+      console.log(response, 'response-checkout');
+      return response.json();
+    })
     .catch((error) => console.log('error', error));
 
   const result = await data;
