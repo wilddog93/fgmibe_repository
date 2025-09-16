@@ -72,16 +72,16 @@ export async function createIpaymuCheckout(params: {
     const res = await axios.post(`${IPAYMU_URL}/payment`, body, {
       headers
     });
-    console.log('SUCCESS:', res.data);
+    // console.log('SUCCESS:', res.data);
     return res.data;
-  } catch (err) {
+  } catch (err: any) {
     if (axios.isAxiosError(err) && err.response) {
       throw new ApiError(
-        httpStatus.BAD_REQUEST,
+        err.response.status || err.response.data?.Status,
         err.response.data?.Message || err.response.data?.message
       );
     } else {
-      console.error('UNKNOWN ERROR:', err);
+      throw new ApiError(httpStatus.BAD_REQUEST, err?.response?.data?.message || err?.data);
     }
   }
 
