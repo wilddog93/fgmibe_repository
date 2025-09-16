@@ -104,7 +104,6 @@ export const checkoutProgramIpaymu = async (
   const ipaymuRes = await createIpaymuCheckout(ipaymuBody);
   if (ipaymuRes?.Status !== 200)
     throw new ApiError(httpStatus.BAD_REQUEST, ipaymuRes?.Message || ipaymuRes?.message);
-  console.log(ipaymuRes, 'cek-response-ipaymu');
   logger.info(`[IPAYMU] Payment response program packages ${ipaymuRes}`);
 
   // 6️⃣ Simpan ke Redis (TTL 2h) → sama seperti Snap
