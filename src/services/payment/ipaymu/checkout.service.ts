@@ -1,4 +1,7 @@
 // src/services/checkout-ipaymu.service.ts
+import { promises as fs } from 'fs';
+import path from 'path';
+
 import { MemberStatus, PaymentMethod, PrismaClient } from '@prisma/client';
 import redis from '../../../config/redis';
 import { genOrderId } from '../../../utils/orderId';
@@ -10,6 +13,18 @@ import logger from '../../../config/logger';
 import config from '../../../config/config';
 
 const prisma = new PrismaClient();
+
+// 🖼️ Cache in-memory agar tidak baca file berulang
+let cachedLogoBase64: string | null = null;
+
+async function getLogoBase64() {
+  if (cachedLogoBase64) return cachedLogoBase64;
+
+  const logoPath = path.resolve(__dirname, '../../../assets/images/fgmi-logo.png');
+  const fileBuffer = await fs.readFile(logoPath);
+  cachedLogoBase64 = `data:image/png;base64,${fileBuffer.toString('base64')}`;
+  return cachedLogoBase64;
+}
 
 interface CheckoutInputProgram {
   programId: string;
@@ -68,7 +83,7 @@ export const checkoutProgramIpaymu = async (
   if (isRegistered) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      `Email already registered in ${isRegistered.program.name}`
+      `Program already registered in this Email as ${isRegistered.program.name}`
     );
   }
 
@@ -81,7 +96,10 @@ export const checkoutProgramIpaymu = async (
   // 3️⃣ Generate orderId
   const orderId = genOrderId('PRG');
 
-  // 4️⃣ Build body untuk Ipaymu
+  // 4️⃣ Get logo base64
+  const logoBase64 = await getLogoBase64();
+
+  // 5️⃣ Build body untuk Ipaymu
   const ipaymuBody = {
     product: [programs?.name ?? 'Program'],
     qty: ['1'],
@@ -97,7 +115,8 @@ export const checkoutProgramIpaymu = async (
     referenceId: orderId,
     buyerName: input.name,
     buyerEmail: normalizedEmail,
-    buyerPhone: input.phone ?? ''
+    buyerPhone: input.phone ?? '',
+    imageUrl: ['https://res.cloudinary.com/de2fnbaod/image/upload/v1759132291/fgmi-logo_tpdshy.png'] // ✅ Masukkan logo base64 di sini
   };
 
   // 5️⃣ Call Ipaymu API
@@ -117,7 +136,8 @@ export const checkoutProgramIpaymu = async (
     source,
     amount,
     currency: 'IDR',
-    method: input.method ?? ''
+    method: input.method ?? '',
+    imageUrl: logoBase64 // ✅ Masukkan logo base64 di sini
   };
 
   await redis.set(`pay:${orderId}`, JSON.stringify(cache), {
@@ -153,7 +173,7 @@ export const checkoutRegisterMemberIpaymu = async (
   });
 
   if (isMember) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `Email already registered in ${isMember.name}`);
+    throw new ApiError(httpStatus.BAD_REQUEST, `Email already registered as ${isMember.name}`);
   }
 
   // 2️⃣ Hitung harga & membership source
@@ -164,7 +184,10 @@ export const checkoutRegisterMemberIpaymu = async (
   // 3️⃣ Generate orderId
   const orderId = genOrderId('MEM');
 
-  // 4️⃣ Build body untuk Ipaymu
+  // 4️⃣ Get logo base64
+  const logoBase64 = await getLogoBase64();
+
+  // 5️⃣ Build body untuk Ipaymu
   const ipaymuBody = {
     product: [name ?? 'Member'],
     qty: ['1'],
@@ -180,7 +203,8 @@ export const checkoutRegisterMemberIpaymu = async (
     referenceId: orderId,
     buyerName: input.name,
     buyerEmail: normalizedEmail,
-    buyerPhone: input.phone ?? ''
+    buyerPhone: input.phone ?? '',
+    imageUrl: ['https://res.cloudinary.com/de2fnbaod/image/upload/v1759132291/fgmi-logo_tpdshy.png'] // ✅ Masukkan logo base64 di sini
   };
 
   // 5️⃣ Call Ipaymu API
@@ -201,7 +225,8 @@ export const checkoutRegisterMemberIpaymu = async (
     userId: input.userId ?? null,
     amount,
     currency: 'IDR',
-    method: input.method ?? ''
+    method: input.method ?? '',
+    imageUrl: logoBase64 // ✅ Masukkan logo base64 di sini
   };
 
   await redis.set(`pay:${orderId}`, JSON.stringify(cache), {

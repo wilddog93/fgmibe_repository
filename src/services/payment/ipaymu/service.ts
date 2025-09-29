@@ -38,6 +38,7 @@ export async function createIpaymuCheckout(params: {
   buyerName: string;
   buyerEmail: string;
   buyerPhone: string;
+  imageUrl?: string[];
   // pickupArea?: string;
   // pickupAddress?: string;
 }) {
