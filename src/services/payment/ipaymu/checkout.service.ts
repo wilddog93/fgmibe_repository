@@ -116,7 +116,7 @@ export const checkoutProgramIpaymu = async (
     buyerName: input.name,
     buyerEmail: normalizedEmail,
     buyerPhone: input.phone ?? '',
-    imageUrl: logoBase64 // ✅ Masukkan logo base64 di sini
+    imageUrl: [logoBase64] // ✅ Masukkan logo base64 di sini
   };
 
   // 5️⃣ Call Ipaymu API
@@ -204,7 +204,7 @@ export const checkoutRegisterMemberIpaymu = async (
     buyerName: input.name,
     buyerEmail: normalizedEmail,
     buyerPhone: input.phone ?? '',
-    imageUrl: logoBase64 // ✅ Masukkan logo base64 di sini
+    imageUrl: [logoBase64] // ✅ Masukkan logo base64 di sini
   };
 
   // 5️⃣ Call Ipaymu API
