@@ -187,6 +187,8 @@ const handleMembershipRegistrationIpaymu = async (
     email: string;
     phone: string | null;
     institution: string | null;
+    degree: string | null;
+    studentId: string | null;
     segment: Segment;
     interestAreas: string[];
     membershipPackageId: string;
