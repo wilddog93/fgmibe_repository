@@ -115,8 +115,8 @@ export const checkoutProgramIpaymu = async (
     referenceId: orderId,
     buyerName: input.name,
     buyerEmail: normalizedEmail,
-    buyerPhone: input.phone ?? '',
-    imageUrl: [logoBase64] // ✅ Masukkan logo base64 di sini
+    buyerPhone: input.phone ?? ''
+    // imageUrl: [logoBase64] // ✅ Masukkan logo base64 di sini
   };
 
   // 5️⃣ Call Ipaymu API
@@ -203,8 +203,8 @@ export const checkoutRegisterMemberIpaymu = async (
     referenceId: orderId,
     buyerName: input.name,
     buyerEmail: normalizedEmail,
-    buyerPhone: input.phone ?? '',
-    imageUrl: [logoBase64] // ✅ Masukkan logo base64 di sini
+    buyerPhone: input.phone ?? ''
+    // imageUrl: [logoBase64] // ✅ Masukkan logo base64 di sini
   };
 
   // 5️⃣ Call Ipaymu API
