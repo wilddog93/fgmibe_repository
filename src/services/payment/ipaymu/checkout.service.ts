@@ -68,7 +68,7 @@ export const checkoutProgramIpaymu = async (
   if (isRegistered) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      `Email already registered in ${isRegistered.program.name}`
+      `Program already registered in this Email as ${isRegistered.program.name}`
     );
   }
 
@@ -153,7 +153,7 @@ export const checkoutRegisterMemberIpaymu = async (
   });
 
   if (isMember) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `Email already registered in ${isMember.name}`);
+    throw new ApiError(httpStatus.BAD_REQUEST, `Email already registered as ${isMember.name}`);
   }
 
   // 2️⃣ Hitung harga & membership source
