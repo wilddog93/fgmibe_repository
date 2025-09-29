@@ -184,6 +184,8 @@ const handleMembershipRegistration = async (
     phone: string | null;
     institution: string | null;
     segment: Segment;
+    degree: string | null;
+    studentId: string | null;
     interestAreas: string[];
     membershipPackageId: string;
     userId: number | null;
