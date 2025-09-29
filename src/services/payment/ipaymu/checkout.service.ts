@@ -20,7 +20,7 @@ let cachedLogoBase64: string | null = null;
 async function getLogoBase64() {
   if (cachedLogoBase64) return cachedLogoBase64;
 
-  const logoPath = path.resolve(__dirname, '../../../assets/image/logo_fgmi.png');
+  const logoPath = path.resolve(__dirname, '../../../assets/images/fgmi-logo.png');
   const fileBuffer = await fs.readFile(logoPath);
   cachedLogoBase64 = `data:image/png;base64,${fileBuffer.toString('base64')}`;
   return cachedLogoBase64;
