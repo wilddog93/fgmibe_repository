@@ -23,6 +23,8 @@ type CacheMembership = {
   email: string;
   phone: string | null;
   institution: string | null;
+  degree: string | null;
+  studentId: string | null;
   segment: Segment | null;
   interestAreas: string[];
   userId: number | null;
@@ -87,6 +89,8 @@ export const createMemberAndUser = async (tx: Prisma.TransactionClient, cache: C
         email,
         phone: cache.phone ?? undefined,
         institution: cache.institution ?? undefined,
+        degree: cache.degree ?? undefined,
+        studentId: cache.studentId ?? undefined,
         segment: seg,
         interestAreas: cache.interestAreas ?? [],
         membershipPackageId,
